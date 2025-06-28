@@ -1,46 +1,93 @@
 .about-us {
-    background-color: #f5f7fa;
-    padding: 40px 20px;
-    font-family: Arial, sans-serif;
-    color: #333;
+    background: rgba(255, 255, 255, 0.8); /* Fondo semitransparente */
+    backdrop-filter: blur(4px);
+    padding: 25px 15px; /* Menos padding vertical */
+    font-family: 'Segoe UI', sans-serif;
+    color: #2c3e50;
+    border-radius: 12px;
+    margin: 30px auto;
+    max-width: 650px; /* Contenedor más pequeño */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .container {
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
+    padding: 5px;
 }
 
 .about-title {
-    font-size: 32px;
-    margin-bottom: 20px;
-    color: #3a506b;
+    font-size: 28px;
+    margin-bottom: 16px;
+    color: #1e3a8a;
+    text-align: center;
+    font-weight: bold;
 }
 
 .about-subtitle {
-    font-size: 24px;
-    margin-top: 30px;
-    color: #5c6ac4;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #3b82f6;
+    font-weight: 600;
+    border-left: 4px solid #3b82f6;
+    padding-left: 10px;
 }
 
 .about-text {
-    font-size: 18px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #374151;
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
 .features-list {
-    margin-top: 15px;
-    padding-left: 20px;
-    list-style-type: none;
+    margin: 10px 0;
+    padding-left: 0;
+    list-style: none;
 }
 
 .features-list li {
-    margin-bottom: 10px;
+    background-color: rgba(59, 130, 246, 0.06);
+    border-left: 4px solid #3b82f6;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #1f2937;
 }
 
 .about-quote {
-    margin-top: 30px;
+    margin-top: 18px;
     font-style: italic;
-    color: #555;
-    border-left: 4px solid #3a506b;
-    padding-left: 15px;
+    color: #475569;
+    border-left: 4px solid #2563eb;
+    padding-left: 14px;
+    font-size: 15.5px;
+    background-color: #e0edff;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .about-title {
+        font-size: 24px;
+    }
+
+    .about-subtitle {
+        font-size: 18px;
+    }
+
+    .about-text,
+    .features-list li,
+    .about-quote {
+        font-size: 14.5px;
+    }
+
+    .about-us {
+        padding: 20px 10px;
+    }
 }
