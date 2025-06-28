@@ -25,4 +25,4 @@ const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
     )
 }
 
-export default Navbar;
+export default Navbar;
