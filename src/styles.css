@@ -2,7 +2,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-image: url('/background.jpg'); /* Imagen de fondo */
+    background-image: url('/background-student.svg'); /* Imagen de fondo */
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -33,7 +33,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #333;
+    background: #3a506b;
     padding: 10px 20px;
     color: white;
 }
@@ -42,15 +42,18 @@ body {
     display: flex;
     align-items: center;
 }
+
 .logo {
     width: 40px;
     height: 40px;
     margin-right: 10px;
 }
+
 .username {
     font-size: 18px;
     font-weight: bold;
 }
+
 .navbar-menu {
     list-style: none;
     display: flex;
@@ -58,8 +61,10 @@ body {
 }
 
 .navbar-menu li {
-    display: inline;
+    display: flex;
+    align-items: center;
 }
+
 .navbar-menu a, .logout-button {
     color: white;
     text-decoration: none;
