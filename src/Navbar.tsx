@@ -15,9 +15,9 @@ const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
                 <span className='userName'>{userName}</span>
             </div>
             <ul className='navbar-menu'>
-                <li><Link to="/">Begin</Link></li>
-                <li><Link to="/about">About us</Link></li>
-                <li><Link to="/gallery">Gallery</Link></li>
+                <li><Link to="/">Inicio</Link></li>
+                <li><Link to="/about">Sobre nosotros</Link></li>
+                <li><Link to="/gallery">FAQ</Link></li>
                 <li><button onClick={onLogout} className='logout-button'>Logout</button></li>
             </ul>
         </nav>
