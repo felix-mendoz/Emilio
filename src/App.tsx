@@ -6,6 +6,7 @@ import "./styles.css"
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import About from './About'
 import Gallery from './Gallery'
+import Faqs from './question'
 
 const App:React.FC = () => {
   const [IsAunthenticated, setlsAuthenticated] = useState(false);
@@ -25,7 +26,6 @@ const App:React.FC = () => {
     setlsAuthenticated(false);
     setUserName("");
   }
-
   return (
     <Router>
       {IsAunthenticated && <Navbar onLogout={HandleLogut} userName= {userName} />}
@@ -39,14 +39,13 @@ const App:React.FC = () => {
               <>
               <Route path="/" element={<Home userName= {userName}/>}></Route>
               <Route path='/about' element = {<About/>}></Route>
-              <Route path='/gallery' element = {<Gallery/>}></Route>
+              <Route path='/faqs' element = {<Faqs/>}></Route>
               <Route path='/' element = {<Navigate to="/"/>}></Route>
               </>
             )}
           </Routes>
         </div>
       </div>
-
     </Router>
   )
 

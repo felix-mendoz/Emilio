@@ -7,8 +7,8 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({userName}) => {
     return (
         <div>
-            <h2>Start</h2>
-            <p>Welcome, {userName}. We are building a web page.</p>
+            <h2>Bienvenido a tu espacio de trabajo academico {userName}</h2>
+            <p>Aqui puedes subir archivos, realizar anotaciones y planificar recordatorios.</p>
         </div>
     )
 }
