@@ -1,54 +1,24 @@
-# React + TypeScript + Vite
+# AcadexPro
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AcadexPro es una plataforma web diseñada para estudiantes universitarios que buscan organizar y gestionar sus archivos, tareas y recordatorios académicos de manera eficiente. Con AcadexPro, puedes centralizar tus apuntes, crear recordatorios personalizados y mantener tu expediente de estudio siempre actualizado y accesible.
 
-Currently, two official plugins are available:
+## Características principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Subida y gestión de archivos:** Guarda y organiza todos tus documentos académicos en un solo lugar.
+- **Recordatorios y alertas:** Configura recordatorios para fechas de entrega, exámenes y actividades importantes.
+- **Notas y anotaciones:** Toma notas directamente relacionadas con tus archivos para facilitar el repaso.
+- **Módulo de estudio interactivo:** Crea juegos de memoria y tarjetas didácticas (flashcards) basados en tus apuntes.
+- **Interfaz intuitiva y accesible:** Fácil de usar, diseñada pensando en las necesidades de estudiantes universitarios.
 
-## Expanding the ESLint configuration
+## Tecnologías utilizadas
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React (Frontend)
+- Git para control de versiones
+- Backend (por definir)
+- Base de datos (por definir)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Cómo empezar
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/felix-mendoz/Emilio.git
