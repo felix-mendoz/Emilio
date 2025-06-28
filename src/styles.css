@@ -2,13 +2,147 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+<<<<<<< HEAD
     background-image: url('/background-student.svg'); /* Imagen de fondo */
+=======
+    background-image: url('https://www.aauniv.com/s/blog/wp-content/uploads/2020/03/empezar-estudiar-en-linea-en-casa.jpg');
+>>>>>>> main
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    
 }
+
+/* LOGIN STYLES */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    min-height: 20vh;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 2000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    background: white;
+    opacity: 0.9;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 20px 200px;
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+}
+
+.login-image {
+    width: 100px;
+    height: 100px;
+    background-image: url('https://cdn-icons-png.flaticon.com/512/5521/5521353.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+}
+
+.login-title {
+    font-size: 26px;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+   font-size: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+.input-field {
+    position: relative;
+    right: 143px;
+    width: 250%;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.input-field:focus {
+    border-color: #007bff;
+    background-color: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.login-button {
+    position: relative;
+    right: 135px;
+    width: 240%;
+    padding: 14px;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.login-button:hover {
+    background: linear-gradient(to right, #0056b3, #003f8a);
+    box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
+}
+
+.login-links {
+    margin-top: 25px;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.login-links a {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    padding: 8px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.login-links a:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
 
 /* Centrar el contenido */
 .content-container {
@@ -18,16 +152,7 @@ body {
     height: 100vh;
 }
 
-.content {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    width: 400px; /* tamaño de la caja de contenido */
-    height: 450px;
 
-}
 /* Estilos de la barra de navegación */
 .navbar {
     display: flex;
@@ -65,7 +190,12 @@ body {
     align-items: center;
 }
 
+<<<<<<< HEAD
 .navbar-menu a, .logout-button {
+=======
+.navbar-menu a,
+.logout-button {
+>>>>>>> main
     color: white;
     text-decoration: none;
     background: none;
@@ -79,84 +209,4 @@ body {
     background: red;
     padding: 5px 10px;
     border-radius: 5px;
-}
-
-/* Contenedor principal del login */
-.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  
-}
-
-.login-box {
-    display: flex;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 400px;
-    flex-direction: column;
-    align-items: center;
-}
-.login-image {
-    width: 100px;
-    height: 100px;
-    background-image: url('./login.png'); /* Imagen de login */
-    background-size: cover;
-    background-position: center;
-    /*border-radius: 50%;*/
-    margin-bottom: 15px;
-}
-.login-form {
-    width: 100%;
-    text-align: center;
-}
-h2 {
-    color: #333;
-    font-size: 24px;
-    margin-bottom: 15px;
-}
-.input-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-.input-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
-}
-.input-field {
-    width: 350px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-}
-.login-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-.login-button:hover {
-    background-color: #0056b3;
-}
-.login-links {
-    margin-top: 10px;
-}
-.login-links a {
-    color: #007bff;
-    text-decoration: none;
-    margin-right: 10px;
-    font-size: 14px;
-}
-.login-links a:hover {
-    text-decoration: underline;
 }
