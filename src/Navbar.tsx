@@ -1,0 +1,27 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import logo from "./logos 1.png";
+
+interface NavbarProps {
+    onLogout: () => void;
+    userName: string; 
+}
+
+const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
+    return (
+        <nav className='navbar'>
+            <div className='navbar-left'>
+                <img src={logo} alt="Logo" className='logo'/>
+                <span className='userName'>{userName}</span>
+            </div>
+            <ul className='navbar-menu'>
+                <li><Link to="/">Begin</Link></li>
+                <li><Link to="/about">About us</Link></li>
+                <li><Link to="/gallery">Gallery</Link></li>
+                <li><button onClick={onLogout} className='logout-button'>Logout</button></li>
+            </ul>
+        </nav>
+    )
+}
+
+export default Navbar;
