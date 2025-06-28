@@ -10,7 +10,6 @@ interface Question {
 const questions: Question[] = [
     {
     question: "¿?",
-<<<<<<< HEAD
     answer: "Haz clic en '¿Olvidaste tu contraseña?' y sigue los pasos.",
     },
     {
@@ -24,21 +23,6 @@ const questions: Question[] = [
     {
     question: "¿Puedo eliminar mi cuenta permanentemente?",
     answer: "Sí, ve a configuración de cuenta y selecciona 'Eliminar cuenta'.",
-=======
-    answer: "",
-    },
-    {
-    question: "¿?",
-    answer: "",
-    },
-    {
-    question: "¿?",
-    answer: "",
-    },
-    {
-    question: "¿?",
-    answer: "",
->>>>>>> 0d2f521c0e463cf86c52caa4ec2ac2324d7d26f7
     },
 ];
 
@@ -46,11 +30,7 @@ const QuestionSection: React.FC = () => {
     return (
     <section className="max-w-4xl mx-auto my-16 p-10 bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl">
         <h2 className="text-3xl font-bold text-slate-900 text-center mb-10">
-<<<<<<< HEAD
             Preguntas Frecuentes
-=======
-        Preguntas Frecuentes
->>>>>>> 0d2f521c0e463cf86c52caa4ec2ac2324d7d26f7
         </h2>
 
         <div className="space-y-8">

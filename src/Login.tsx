@@ -1,12 +1,11 @@
-<<<<<<< HEAD
 "use client"
 
 import type React from "react"
 import { useState } from "react"
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react"
 
 interface LoginProps {
-    onLogin: (email: string, password: string) => void
+  onLogin: (email: string, password: string) => void
 }
 
     const Login: React.FC<LoginProps> = ({onLogin}) => {
@@ -114,5 +113,4 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   );
 };
 
-export default Login;
->>>>>>> 0d2f521c0e463cf86c52caa4ec2ac2324d7d26f7
+export default Login
