@@ -26,7 +26,6 @@ const App:React.FC = () => {
     setlsAuthenticated(false);
     setUserName("");
   }
-
   return (
     <Router>
       {IsAunthenticated && <Navbar onLogout={HandleLogut} userName= {userName} />}
@@ -47,7 +46,6 @@ const App:React.FC = () => {
           </Routes>
         </div>
       </div>
-
     </Router>
   )
 

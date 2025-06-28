@@ -10,19 +10,19 @@ interface Question {
 const questions: Question[] = [
     {
     question: "¿?",
-    answer: "",
+    answer: "Haz clic en '¿Olvidaste tu contraseña?' y sigue los pasos.",
     },
     {
-    question: "¿?",
-    answer: "",
+    question: "¿Dónde puedo cambiar mi correo?",
+    answer: "Desde la sección de perfil puedes actualizar tu correo electrónico.",
     },
     {
-    question: "¿?",
-    answer: "",
+    question: "¿Qué pasa si no recibo el correo de verificación?",
+    answer: "Revisa tu carpeta de spam o intenta reenviarlo desde la configuración.",
     },
     {
-    question: "¿?",
-    answer: "",
+    question: "¿Puedo eliminar mi cuenta permanentemente?",
+    answer: "Sí, ve a configuración de cuenta y selecciona 'Eliminar cuenta'.",
     },
 ];
 
@@ -30,7 +30,7 @@ const QuestionSection: React.FC = () => {
     return (
     <section className="max-w-4xl mx-auto my-16 p-10 bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl">
         <h2 className="text-3xl font-bold text-slate-900 text-center mb-10">
-        Preguntas Frecuentes
+            Preguntas Frecuentes
         </h2>
 
         <div className="space-y-8">
