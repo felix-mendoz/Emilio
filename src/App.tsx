@@ -5,8 +5,8 @@ import Navbar from './Navbar'
 import "./styles.css"
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import About from './About'
-import Gallery from './Gallery'
 import Faqs from './question'
+import Gallery from './Gallery';
 
 const App:React.FC = () => {
   const [IsAunthenticated, setlsAuthenticated] = useState(false);
@@ -33,17 +33,18 @@ const App:React.FC = () => {
       <div className="content-container">
         <div className='content'>
           <Routes>
-            {!IsAunthenticated? (
-              <Route path="/*" element= {<Login onLogin= {HandleLogin}/>}/>
-            ): (
-              <>
-              <Route path="/" element={<Home userName= {userName}/>}></Route>
-              <Route path='/about' element = {<About/>}></Route>
-              <Route path='/faqs' element = {<Faqs/>}></Route>
-              <Route path='/' element = {<Navigate to="/"/>}></Route>
-              </>
-            )}
-          </Routes>
+  {!IsAunthenticated ? (
+    <Route path="/*" element={<Login onLogin={HandleLogin} />} />
+  ) : (
+    <>
+      <Route path="/" element={<Home userName={userName} />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/faqs" element={<Faqs />} />
+      <Route path="/gallery" element={<Gallery />} /> {/* Esta ruta faltaba */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </>
+  )}
+</Routes>
         </div>
       </div>
     </Router>
