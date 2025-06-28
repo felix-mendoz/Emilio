@@ -2,11 +2,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-<<<<<<< HEAD
-    background-image: url('/background-student.svg'); /* Imagen de fondo */
-=======
     background-image: url('https://www.aauniv.com/s/blog/wp-content/uploads/2020/03/empezar-estudiar-en-linea-en-casa.jpg');
->>>>>>> main
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -190,12 +186,8 @@ body {
     align-items: center;
 }
 
-<<<<<<< HEAD
-.navbar-menu a, .logout-button {
-=======
 .navbar-menu a,
 .logout-button {
->>>>>>> main
     color: white;
     text-decoration: none;
     background: none;
