@@ -202,3 +202,76 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
 }
+
+
+/* ======= RESPONSIVE DESIGN ======= */
+
+/* Tablets (hasta 1024px) */
+@media (max-width: 1024px) {
+  .login-card {
+    padding: 30px 60px;
+  }
+
+  .input-field,
+  .login-button {
+    width: 100%;
+    right: 0;
+  }
+}
+
+/* Móviles grandes y medianos (hasta 768px) */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 25px 30px;
+  }
+
+  .input-field,
+  .login-button {
+    width: 100%;
+    right: 0;
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .login-title {
+    font-size: 22px;
+  }
+
+  .login-image {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* Móviles pequeños (hasta 480px) */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px 20px;
+  }
+
+  .login-title {
+    font-size: 20px;
+  }
+
+  .input-group label {
+    font-size: 14px;
+  }
+
+  .input-field,
+  .login-button {
+    width: 100%;
+    right: 0;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .login-links {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .login-links a {
+    padding: 6px 10px;
+  }
+}
+
