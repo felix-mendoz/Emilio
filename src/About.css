@@ -1,0 +1,46 @@
+.about-us {
+    background-color: #f5f7fa;
+    padding: 40px 20px;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-title {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #3a506b;
+}
+
+.about-subtitle {
+    font-size: 24px;
+    margin-top: 30px;
+    color: #5c6ac4;
+}
+
+.about-text {
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.features-list {
+    margin-top: 15px;
+    padding-left: 20px;
+    list-style-type: none;
+}
+
+.features-list li {
+    margin-bottom: 10px;
+}
+
+.about-quote {
+    margin-top: 30px;
+    font-style: italic;
+    color: #555;
+    border-left: 4px solid #3a506b;
+    padding-left: 15px;
+}
