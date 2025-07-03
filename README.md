@@ -14,8 +14,8 @@ AcadexPro es una plataforma web diseñada para estudiantes universitarios que bu
 
 - React (Frontend)
 - Git para control de versiones
-- Backend (por definir)
-- Base de datos (por definir)
+- Backend API REST con nodejs
+- Base de datos PostGreSQL
 
 ## Cómo empezar
 
