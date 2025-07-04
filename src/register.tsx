@@ -1,30 +1,30 @@
 import React, { useState } from "react";
 import "./styles.css";
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/api/login", { // Billy aqui esta el fetch Tienes que adaptarlo
+      const response = await fetch("http://localhost:3000/api/register", {  // Billy aqui esta el fetch Tienes que adaptarlo
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert("Login exitoso");
-        // Aqui puedes redireccionar billy si deseas redireccionar, para que lo mande a la pagina de bienvenida 
+        alert("Usuario registrado con éxito");
         console.log(data);
       } else {
-        alert(`Error: ${data.message || "Credenciales inválidas"}`);
+        alert(`Error: ${data.message || "No se pudo registrar"}`);
       }
     } catch (error) {
       console.error("Error de conexión:", error);
@@ -37,42 +37,53 @@ const Login: React.FC = () => {
       <div className="login-container">
         <div className="login-card">
           <div className="login-image" />
-          <h2 className="login-title">AcadexPro</h2>
+          <h2 className="login-title">Crear Cuenta</h2>
           <form onSubmit={handleSubmit} className="login-form">
+            <div className="input-group">
+              <label>Nombre</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}   // Campo nombre 
+                required
+                className="input-field"
+                placeholder="Tu nombre completo"
+              />
+            </div>
             <div className="input-group">
               <label>Email</label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}   // Campo de email
                 required
                 className="input-field"
                 placeholder="you@example.com"
               />
             </div>
             <div className="input-group">
-              <label>Password</label>
+              <label>Contraseña</label>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} 
+                onChange={(e) => setPassword(e.target.value)}  // Campo de la password
                 required
                 className="input-field"
-                placeholder="Enter Password"
+                placeholder="Elige una contraseña"
               />
             </div>
-            <button type="submit" className="login-button"> 
-              Sign In
+            <button type="submit" className="login-button">
+              Crear Cuenta
             </button>
           </form>
           <div className="login-links">
-  <a href="/forgot-password">Forgot password?</a>
-  <a href="/register">Create account</a> 
+  <a href="/login">¿Ya tienes cuenta? Inicia sesión</a>
 </div>
+
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
