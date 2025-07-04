@@ -20,6 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
                 <li><Link to="/about">Sobre nosotros</Link></li>
                 <li><Link to="/faqs">FAQ</Link></li>
                 <li><Link to="/Gallery">Novedades</Link></li>
+                <li><Link to="/register">Register</Link></li>
                 <li><button onClick={onLogout} className='logout-button'>Logout</button></li>
             </ul>
         </nav>
