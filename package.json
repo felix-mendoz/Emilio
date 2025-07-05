@@ -1,16 +1,21 @@
 {
-  "name": "f-app-database",
+  "name": "api-emilio",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
+   "main": "server.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+     "start": "node server.js"
   },
   "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.0.1",
+    "express": "^5.1.0",
     "lucide-react": "^0.525.0",
     "pg": "^8.16.3",
     "react": "^19.1.0",
@@ -34,5 +39,5 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5"
-  }
+}
 }
