@@ -313,8 +313,9 @@ body {
 
   .username {
     font-size: 18px;
+     text-align: center;
   }
-    text-align: center;
+
 }
 h2 {
     color: #333;
@@ -360,16 +361,6 @@ h2 {
     font-size: 14px;
   }
 
-  .username {
-    font-size: 16px;}}
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
 .login-button:hover {
     background-color: #0056b3;
 }
