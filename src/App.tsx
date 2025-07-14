@@ -12,6 +12,7 @@ import Navbar from "./Navbar";
 import About from "./About";
 import Faqs from "./question";
 import Gallery from "./Gallery";
+import GestionArchivos from "./gestionArchivos"; 
 import "./styles.css";
 
 const App: React.FC = () => {
@@ -66,6 +67,7 @@ const App: React.FC = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/faqs" element={<Faqs />} />
                 <Route path="/gallery" element={<Gallery />} />
+                <Route path="/documents" element={<GestionArchivos userName={userName} />} /> {/* Ruta añadida */}
                 <Route path="*" element={<Navigate to="/" />} />
               </>
             )}
