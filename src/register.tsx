@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import "./styles.css";
+import { useNavigate } from "react-router-dom";
 
 const Register: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -10,7 +12,7 @@ const Register: React.FC = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/api/register", {  // Billy aqui esta el fetch Tienes que adaptarlo
+      const response = await fetch("http://localhost:3000/api/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -22,9 +24,9 @@ const Register: React.FC = () => {
 
       if (response.ok) {
         alert("Usuario registrado con éxito");
-        console.log(data);
+        navigate("/login");
       } else {
-        alert(`Error: ${data.message || "No se pudo registrar"}`);
+        alert(data.message);
       }
     } catch (error) {
       console.error("Error de conexión:", error);
@@ -44,7 +46,7 @@ const Register: React.FC = () => {
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}   // Campo nombre 
+                onChange={(e) => setName(e.target.value)} 
                 required
                 className="input-field"
                 placeholder="Tu nombre completo"
@@ -55,7 +57,7 @@ const Register: React.FC = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}   // Campo de email
+                onChange={(e) => setEmail(e.target.value)} 
                 required
                 className="input-field"
                 placeholder="you@example.com"
@@ -66,7 +68,7 @@ const Register: React.FC = () => {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}  // Campo de la password
+                onChange={(e) => setPassword(e.target.value)} 
                 required
                 className="input-field"
                 placeholder="Elige una contraseña"
@@ -77,9 +79,8 @@ const Register: React.FC = () => {
             </button>
           </form>
           <div className="login-links">
-  <a href="/login">¿Ya tienes cuenta? Inicia sesión</a>
-</div>
-
+            <a href="/login">¿Ya tienes cuenta? Inicia sesión</a>
+          </div>
         </div>
       </div>
     </div>
