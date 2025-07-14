@@ -5,6 +5,7 @@ import logo from "./AcadexPro.png";
 interface NavbarProps {
     onLogout: () => void;
     userName: string; 
+    userId: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {

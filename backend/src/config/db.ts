@@ -15,4 +15,4 @@ export const pool = new Pool({
 // Checking the conexion
 pool.connect()
 .then(() => console.log("Connected to PostgreSQL"))
-.catch(error => console.log(`Error on PostgreSQL conexion: `,error));
+.catch(error => console.log(`Error on PostgreSQL conexion: `,error));   

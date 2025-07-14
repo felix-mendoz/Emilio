@@ -5,6 +5,8 @@ require("dotenv").config();
 
 const app = express();
 const PORT = 3000;
+const multer = require("multer");
+const upload = multer();
 
 app.use(cors());
 app.use(express.json());
@@ -77,7 +79,55 @@ app.post("/api/login", async (req, res) => {
       message: "Error al iniciar sesión usuario.",
       error: error.message,
     });
-    }
+  }
+});
+app.get("/api/documents", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM archivo");
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error obteniendo datos: ", error });
+  }
+});
+app.post("/api/documents", upload.single("contenido"), async (req, res) => {
+  try {
+    const { nombre_archivo, extension } = req.body;
+    const estado = true;
+    const ultima_revision = new Date();
+    const fecha_subida = new Date();
+    const contenido = req.file.buffer;
+    const id_usuario = parseInt(req.body.id_usuario, 10);
+    res.json({
+      contenido: req.file?.buffer,
+      nombre_archivo,
+      extension,
+      estado,
+      ultima_revision,
+      fecha_subida,
+      id_usuario,
+    });
+
+    await pool.query(
+      `INSERT INTO archivo 
+  (nombre_archivo, extension, estado, ultima_revision, fecha_subida, id_usuario)
+  VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        nombre_archivo,
+        extension,
+        estado,
+        ultima_revision,
+        fecha_subida,
+        id_usuario,
+      ]
+    );
+
+    res.json({ message: "Archivo insertado correctamente" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error insertando archivo",
+      error: error.message || error,
+    });
+  }
 });
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);

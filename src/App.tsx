@@ -18,6 +18,7 @@ import "./styles.css";
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState("");
 
   const onLogin = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -30,8 +31,9 @@ const App: React.FC = () => {
         return false;
       }
       const data = await response.json();
-  
-      setUserName(data.user.name);
+      
+      setUserName(data.user.nombre);
+      setUserId(data.user.id_user);
       setIsAuthenticated(true);
       return true;
     } catch (error) {
@@ -49,7 +51,7 @@ const App: React.FC = () => {
   return (
     <Router>
       {isAuthenticated && (
-        <Navbar onLogout={handleLogout} userName={userName} />
+        <Navbar onLogout={handleLogout} userName={userName} userId={userId} />
       )}
 
       <div className="content-container">
@@ -67,7 +69,7 @@ const App: React.FC = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/faqs" element={<Faqs />} />
                 <Route path="/gallery" element={<Gallery />} />
-                <Route path="/documents" element={<GestionArchivos userName={userName} />} /> {/* Ruta añadida */}
+                <Route path="/documents" element={<GestionArchivos userName={userName} userId={userId} />} /> {/* Ruta añadida */}
                 <Route path="*" element={<Navigate to="/" />} />
               </>
             )}

@@ -11,11 +11,13 @@ interface Document {
 
 interface GestionArchivosProps {
   userName: string;
+  userId: string;
+
 }
 
 const API_BASE_URL = 'http://localhost:3000/api/documents';
 
-const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName }) => {
+const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [filter, setFilter] = useState('');
   const [newDocument, setNewDocument] = useState<Omit<Document, 'id' | 'uploadDate'>>({ 
@@ -86,9 +88,11 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName }) => {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('name', newDocument.name);
-      formData.append('type', newDocument.type);
+      formData.append('contenido', file);
+      formData.append('nombre_archivo', newDocument.name);
+      formData.append('extension', newDocument.type);
+      formData.append('id_usuario', userId);
+  
 
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
@@ -130,8 +134,8 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          name: newDocument.name,
-          type: newDocument.type
+          nombre_archivo: newDocument.name,
+          extension: newDocument.type
         }),
       });
 
