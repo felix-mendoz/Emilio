@@ -25,3 +25,6 @@ dist-ssr
 
 # Archivo env
 .env
+
+# Archivos dentro de upload
+backend/uploads/*
