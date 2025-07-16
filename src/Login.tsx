@@ -1,34 +1,24 @@
 import React, { useState } from "react";
 import "./styles.css";
+import { useNavigate } from "react-router-dom";
 
-const Login: React.FC = () => {
+interface LoginProps {
+  onLogin: (email: string, password: string) => Promise<boolean>;
+}
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    try {
-      const response = await fetch("http://localhost:3000/api/login", { // Billy aqui esta el fetch Tienes que adaptarlo
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Login exitoso");
-        // Aqui puedes redireccionar billy si deseas redireccionar, para que lo mande a la pagina de bienvenida 
-        console.log(data);
-      } else {
-        alert(`Error: ${data.message || "Credenciales inválidas"}`);
-      }
-    } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+    await onLogin(email, password);
+    const success = await onLogin(email, password);
+    if (success) {
+      alert("Login exitoso");
+      navigate("/");
+    } else {
+      alert("Credenciales inválidas o error en login");
     }
   };
 
@@ -55,20 +45,20 @@ const Login: React.FC = () => {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} 
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="input-field"
                 placeholder="Enter Password"
               />
             </div>
-            <button type="submit" className="login-button"> 
+            <button type="submit" className="login-button">
               Sign In
             </button>
           </form>
           <div className="login-links">
-  <a href="/forgot-password">Forgot password?</a>
-  <a href="/register">Create account</a> 
-</div>
+            <a href="/forgot-password">Forgot password?</a>
+            <a href="/register">Create account</a>
+          </div>
         </div>
       </div>
     </div>

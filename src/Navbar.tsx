@@ -5,6 +5,7 @@ import logo from "./AcadexPro.png";
 interface NavbarProps {
     onLogout: () => void;
     userName: string; 
+    userId: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
@@ -17,6 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
             </div>
             <ul className='navbar-menu'>
                 <li><Link to="/">Inicio</Link></li>
+                <li><Link to="/documents">Documentos</Link></li> {/* Enlace añadido */}
                 <li><Link to="/about">Sobre nosotros</Link></li>
                 <li><Link to="/faqs">FAQ</Link></li>
                 <li><Link to="/Gallery">Novedades</Link></li>
@@ -27,4 +29,4 @@ const Navbar: React.FC<NavbarProps> = ({onLogout, userName}) => {
     )
 }
 
-export default Navbar;
+export default Navbar;
