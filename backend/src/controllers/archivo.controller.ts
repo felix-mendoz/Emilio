@@ -10,7 +10,7 @@ export const getArchivo = async (request: Request, response: Response) => {
     }
 }
 
-export const postArchivo = async (request: Request, response: Response) => {
+export const postArchivo = async (request: Request, response: Response) =>  {
   try {
     const { id_usuario } = request.body;
 
