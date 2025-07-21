@@ -1,11 +1,19 @@
 import express from 'express';
-import {aunthentifyUser} from './controllers/login.controller';
+import {aunthentifyUser,registerUser} from './controllers/user.controller';
 import {getArchivo, postArchivo} from './controllers/archivo.controller'
 
 export const router = express.Router();
 
-// Route to get data {GETS}
+// #################################
+//    U S E R       R O U T E S
+// #################################
+
+// Log in the system
 router.post("/login", aunthentifyUser);
+
+// Create an account
+router.post("/register",registerUser);
+
 
 // // Route to post data {POSTS}
 // router.post("/data",postData);
