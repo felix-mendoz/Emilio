@@ -5,7 +5,7 @@ import {getArchivo, postArchivo} from './controllers/archivo.controller'
 export const router = express.Router();
 
 // Route to get data {GETS}
-router.get("/login", aunthentifyUser);
+router.post("/login", aunthentifyUser);
 
 // // Route to post data {POSTS}
 // router.post("/data",postData);

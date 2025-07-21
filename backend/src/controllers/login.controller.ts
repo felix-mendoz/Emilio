@@ -21,6 +21,7 @@ export const aunthentifyUser = async (request: Request, response: Response) => {
         response.status(200).json({ message: 'Bienvenido', user });
         
     } catch(error){
+        console.log("El error fue: ", error);
         response.status(500).json({message: "Error obteniendo datos: ", error});
     }
 }
