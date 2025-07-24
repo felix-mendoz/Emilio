@@ -1,33 +1,38 @@
-import {Request, Response} from "express";
-import {pool} from "../config/db";
+import { Request, Response } from "express";
+import { pool } from "../config/db";
 
-export const getArchivo = async (request: Request, response: Response) => {
-    try {
-        const result = await pool.query("SELECT * FROM archivos WHERE id_usuario = $1",[]);
-        response.json(result.rows);
-    } catch(error){
-        response.status(500).json({message: "Error obteniendo datos: ", error});
-    }
-}
-
-export const postArchivo = async (request: Request, response: Response) =>  {
+export const postArchivo = async (req: Request, res: Response) => {
   try {
-    const { id_usuario } = request.body;
+    const { id_usuario } = req.body;
 
-    if (!request.file) {
-      return response.status(400).json({ message: "No se envió ningún archivo" });
+    if (!req.file) {
+      return res.status(400).json({ message: "No se recibió ningún archivo" });
     }
 
-    const ruta_archivo = request.file.path;
-    const nombre_archivo = request.file.filename;
+    const nombre_archivo = req.file.originalname;
+    const ruta_archivo = req.file.path;
+    const extension = nombre_archivo.split('.').pop()?.toUpperCase() || 'DESCONOCIDO';
+    const tamaño = `${(req.file.size / (1024 * 1024)).toFixed(2)} MB`;
+    const fecha = new Date();
 
-    await pool.query(
-      "INSERT INTO archivo (id_usuario, nombre_archivo, ruta_archivo) VALUES ($1, $2, $3)",
-      [id_usuario, nombre_archivo, ruta_archivo]
+    const result = await pool.query(
+      `INSERT INTO archivos (id_usuario, nombre_archivo, ruta_archivo, extension, tamaño, fecha_subida)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [id_usuario, nombre_archivo, ruta_archivo, extension, tamaño, fecha]
     );
 
-    response.status(201).json({ message: "Archivo subido correctamente", archivo: nombre_archivo });
+    const nuevoArchivo = result.rows[0];
+
+    res.status(201).json({
+      id: nuevoArchivo.id_archivo,
+      name: nuevoArchivo.nombre_archivo,
+      type: nuevoArchivo.extension,
+      size: nuevoArchivo.tamaño,
+      uploadDate: nuevoArchivo.fecha_subida,
+      url: `http://localhost:3000/${ruta_archivo}`
+    });
   } catch (error) {
-    response.status(500).json({ message: "Error subiendo archivo", error });
+    console.error(error);
+    res.status(500).json({ message: "Error al subir el archivo", error });
   }
 };
