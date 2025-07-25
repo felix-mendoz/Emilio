@@ -87,7 +87,7 @@ export const usersAPI = {
     email: string;
     password: string;
   }): Promise<User> => {
-    return fetchAPI('/auth/register', {
+    return fetchAPI('/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -97,7 +97,7 @@ export const usersAPI = {
     email: string;
     password: string;
   }): Promise<{ token: string; user: User }> => {
-    return fetchAPI('/auth/login', {
+    return fetchAPI('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });

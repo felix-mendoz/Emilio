@@ -1,6 +1,6 @@
 import express from 'express';
 import {aunthentifyUser,registerUser} from './controllers/user.controller';
-import {getArchivo, postArchivo} from './controllers/archivo.controller'
+import {postArchivo} from './controllers/archivo.controller'
 
 export const router = express.Router();
 
