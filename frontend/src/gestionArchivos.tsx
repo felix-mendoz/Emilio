@@ -85,31 +85,33 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingId) return;
+ const handleUpdate = async () => {
+  if (!editingId) return;
 
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-    
-    try {
-      const updatedDocument = await documentsAPI.update(editingId, {
-        nombre_archivo: nuevoDocumento.nombre_archivo,
-        estado: nuevoDocumento.estado
-      });
+  setIsLoading(true);
+  setError(null);
+  setSuccessMessage(null);
+  
+  try {
+    const updatedDocument = await documentsAPI.update(editingId, {
+      nombre_archivo: nuevoDocumento.nombre_archivo,
+      estado: nuevoDocumento.estado,
+      // Elimina esta línea ya que el usuario_id probablemente no es necesario para la actualización
+      // usuario_id: userId // <-- Esto causa el error
+    });
 
-      setDocumentos(documentos.map(doc => 
-        doc.id === editingId ? updatedDocument : doc
-      ));
-      setSuccessMessage('Documento actualizado correctamente');
-      resetForm();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar documento');
-      console.error('Update error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setDocumentos(documentos.map(doc => 
+      doc.id === editingId ? updatedDocument : doc
+    ));
+    setSuccessMessage('Documento actualizado correctamente');
+    resetForm();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Error al actualizar documento');
+    console.error('Update error:', err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Estás seguro de eliminar este documento?')) return;
