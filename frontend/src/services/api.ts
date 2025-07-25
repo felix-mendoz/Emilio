@@ -11,13 +11,13 @@ export interface Documento {
   fecha_subida: string;
   tamaño: string;
   url: string;
+  usuario_id: string; // Asegúrate de que esta propiedad está en tu interfaz
 }
 
 export interface User {
   id: string;
   nombre: string;
   email: string;
-  // Agrega más campos según necesites
 }
 
 // Función base para llamadas API
@@ -42,7 +42,7 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
-// API para documentos (existente)
+// API para documentos
 export const documentsAPI = {
   getAll: async (): Promise<Documento[]> => {
     return fetchAPI('/documentos');
@@ -66,7 +66,7 @@ export const documentsAPI = {
     return response.json();
   },
 
-  update: async (id: string, data: { nombre_archivo: string; estado: string }): Promise<Documento> => {
+  update: async (id: string, data: { nombre_archivo: string; estado: EstadoDocumento; usuario_id: string }): Promise<Documento> => {
     return fetchAPI(`/documentos/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -80,7 +80,7 @@ export const documentsAPI = {
   },
 };
 
-// Nueva API para usuarios
+// API para usuarios
 export const usersAPI = {
   register: async (userData: {
     nombre: string;

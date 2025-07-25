@@ -71,7 +71,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       formData.append('nombre_archivo', nuevoDocumento.nombre_archivo);
       formData.append('extension', nuevoDocumento.extension);
       formData.append('estado', nuevoDocumento.estado);
-      formData.append('usuario_id', userId); // Asegurando que se envía el userId
+      formData.append('usuario_id', userId);
 
       const createdDocument = await documentsAPI.upload(formData);
       setDocumentos([...documentos, createdDocument]);
@@ -85,32 +85,32 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
     }
   };
 
- const handleUpdate = async () => {
-  if (!editingId) return;
+  const handleUpdate = async () => {
+    if (!editingId) return;
 
-  setIsLoading(true);
-  setError(null);
-  setSuccessMessage(null);
-  
-  try {
-    const updatedDocument = await documentsAPI.update(editingId, {
-      nombre_archivo: nuevoDocumento.nombre_archivo,
-      estado: nuevoDocumento.estado,
-      
-    });
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    
+    try {
+      const updatedDocument = await documentsAPI.update(editingId, {
+        nombre_archivo: nuevoDocumento.nombre_archivo,
+        estado: nuevoDocumento.estado,
+        usuario_id: userId
+      });
 
-    setDocumentos(documentos.map(doc => 
-      doc.id === editingId ? updatedDocument : doc
-    ));
-    setSuccessMessage('Documento actualizado correctamente');
-    resetForm();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Error al actualizar documento');
-    console.error('Update error:', err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setDocumentos(documentos.map(doc => 
+        doc.id === editingId ? updatedDocument : doc
+      ));
+      setSuccessMessage('Documento actualizado correctamente');
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar documento');
+      console.error('Update error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Estás seguro de eliminar este documento?')) return;
@@ -156,7 +156,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
     doc.extension.toLowerCase().includes(filter.toLowerCase())
   );
 
-  // Estilos en objeto TypeScript
   const styles = {
     container: {
       maxWidth: '1200px',
@@ -261,7 +260,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       fontSize: '1rem',
       backgroundColor: 'white',
       cursor: 'pointer',
-      appearance: 'none' as const, // Esto soluciona el problema del select que no se despliega
+      appearance: 'none' as const,
       backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'right 0.7rem top 50%',
