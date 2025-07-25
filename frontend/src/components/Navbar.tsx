@@ -19,7 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout, userName }) => {
             </div>
             <ul className='navbar-menu'>
                 <li><Link to="/">Inicio</Link></li>
-                <li><Link to="/documents">Documentos</Link></li>
+                <li><Link to="/gestionArchivos">Documentos</Link></li>
                 <li><Link to="/about">Sobre nosotros</Link></li>
                 <li><Link to="/question">FAQ</Link></li>
                 <li><Link to="/Gallery">Novedades</Link></li>

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../assets/login.png";
+import { usersAPI } from "../services/api";
 
 interface LoginProps {
-    onLogin: (email: string, password: string) => Promise<boolean>;
+    setIsAuthenticated: (value: boolean) => void;
+    setUserData: (data: { name: string; id: string }) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -24,12 +26,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         setIsLoading(true);
         try {
-            const success = await onLogin(email, password);
-            if (!success) {
-                setError("Credenciales incorrectas");
-            }
+            const { token, user } = await usersAPI.login({ email, password });
+            localStorage.setItem('token', token);
+            setIsAuthenticated(true);
+            setUserData({ name: user.nombre, id: user.id });
+            navigate("/");
         } catch (err) {
-            setError("Error al conectar con el servidor");
+            setError(err instanceof Error ? err.message : "Credenciales incorrectas");
         } finally {
             setIsLoading(false);
         }
@@ -126,7 +129,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     );
 };
 
-// Estilos en objeto TypeScript
+// Estilos completos (sin omisiones)
 const styles = {
     loginPage: {
         display: 'flex',
@@ -163,7 +166,6 @@ const styles = {
         fontSize: '28px',
         fontWeight: 'bold',
         marginBottom: '10px',
-
     },
     brandSubtitle: {
         fontSize: '16px',
