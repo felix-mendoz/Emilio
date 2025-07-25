@@ -11,7 +11,7 @@ export interface Documento {
   fecha_subida: string;
   tamaño: string;
   url: string;
-  usuario_id: string; // Asegúrate de que esta propiedad está en tu interfaz
+  usuario_id: string;
 }
 
 export interface User {

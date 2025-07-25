@@ -71,7 +71,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       formData.append('nombre_archivo', nuevoDocumento.nombre_archivo);
       formData.append('extension', nuevoDocumento.extension);
       formData.append('estado', nuevoDocumento.estado);
-      formData.append('usuario_id', userId);
+      formData.append('usuario_id', userId); // Asegurando que se envía el userId
 
       const createdDocument = await documentsAPI.upload(formData);
       setDocumentos([...documentos, createdDocument]);
@@ -96,7 +96,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       const updatedDocument = await documentsAPI.update(editingId, {
         nombre_archivo: nuevoDocumento.nombre_archivo,
         estado: nuevoDocumento.estado,
-        usuario_id: userId
+        usuario_id: userId // Asegurando que se envía el userId
       });
 
       setDocumentos(documentos.map(doc => 
@@ -518,7 +518,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
               estado: e.target.value as EstadoDocumento
             })}
             style={styles.select}
-            disabled={isLoading || !editingId}
+            disabled={isLoading}
           >
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
