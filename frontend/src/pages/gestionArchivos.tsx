@@ -55,9 +55,14 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
     }
   };
 
-  const handleUpload = async () => {
+   const handleUpload = async () => {
     if (!file) {
       setError('Por favor selecciona un archivo');
+      return;
+    }
+
+    if (!userId) {
+      setError('No se ha identificado al usuario');
       return;
     }
 
@@ -71,7 +76,14 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       formData.append('nombre_archivo', nuevoDocumento.nombre_archivo);
       formData.append('extension', nuevoDocumento.extension);
       formData.append('estado', nuevoDocumento.estado);
-      formData.append('usuario_id', userId); // Asegurando que se envía el userId
+      formData.append('usuario_id', userId); // Aseguramos que se envía el userId
+
+      console.log('Enviando datos:', { // Para depuración
+        nombre_archivo: nuevoDocumento.nombre_archivo,
+        extension: nuevoDocumento.extension,
+        estado: nuevoDocumento.estado,
+        usuario_id: userId
+      });
 
       const createdDocument = await documentsAPI.upload(formData);
       setDocumentos([...documentos, createdDocument]);
@@ -88,16 +100,25 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
   const handleUpdate = async () => {
     if (!editingId) return;
 
+    if (!userId) {
+      setError('No se ha identificado al usuario');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
     
     try {
-      const updatedDocument = await documentsAPI.update(editingId, {
+      const updateData = {
         nombre_archivo: nuevoDocumento.nombre_archivo,
         estado: nuevoDocumento.estado,
-        usuario_id: userId // Asegurando que se envía el userId
-      });
+        usuario_id: userId // Aseguramos que se envía el userId
+      };
+
+      console.log('Actualizando con datos:', updateData); // Para depuración
+
+      const updatedDocument = await documentsAPI.update(editingId, updateData);
 
       setDocumentos(documentos.map(doc => 
         doc.id === editingId ? updatedDocument : doc
@@ -111,7 +132,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({ userName, userId }) =
       setIsLoading(false);
     }
   };
-
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Estás seguro de eliminar este documento?')) return;
 

@@ -66,10 +66,18 @@ export const documentsAPI = {
     return response.json();
   },
 
-  update: async (id: string, data: { nombre_archivo: string; estado: EstadoDocumento; usuario_id: string }): Promise<Documento> => {
+  update: async (id: string, data: {
+    nombre_archivo: string;
+    estado: EstadoDocumento;
+    usuario_id: string;
+  }): Promise<Documento> => {
     return fetchAPI(`/documentos/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        nombre_archivo: data.nombre_archivo,
+        estado: data.estado,
+        usuario_id: data.usuario_id
+      }),
     });
   },
 
@@ -77,6 +85,10 @@ export const documentsAPI = {
     await fetchAPI(`/documentos/${id}`, {
       method: 'DELETE',
     });
+  },
+
+  getByUser: async (userId: string): Promise<Documento[]> => {
+    return fetchAPI(`/documentos/usuario/${userId}`);
   },
 };
 
@@ -113,4 +125,32 @@ export const usersAPI = {
       body: JSON.stringify(data),
     });
   },
+
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    await fetchAPI('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+// Función para verificar token
+export const verifyToken = async (): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
 };
