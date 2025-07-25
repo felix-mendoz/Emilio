@@ -126,7 +126,7 @@ const Home: React.FC<HomeProps> = ({ userName }) => {
             ...styles.ctaButton,
             ...(hoverStates.button ? styles.ctaButtonHover : {}),
           }}
-          onClick={() => window.location.href = '/documents'}
+          onClick={() => window.location.href = '/gestionArchivos'}
           onMouseEnter={() => setHoverStates({...hoverStates, button: true})}
           onMouseLeave={() => setHoverStates({...hoverStates, button: false})}
         >
