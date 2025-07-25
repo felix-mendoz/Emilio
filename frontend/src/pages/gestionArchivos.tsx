@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { documentsAPI, type Documento, type EstadoDocumento } from './services/api';
+import { documentsAPI, type Documento, type EstadoDocumento } from '../services/api';
 
 interface GestionArchivosProps {
   userName: string;

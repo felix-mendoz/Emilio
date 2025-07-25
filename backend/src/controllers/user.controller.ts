@@ -28,20 +28,20 @@ export const aunthentifyUser = async (request: Request, response: Response) => {
 
 export const registerUser = async (request: Request, response: Response) => {
     try {
-        const { name, email, password } = request.body;
-
+        const { nombre, email, password } = request.body;
+        console.log(request.body);
         if (!email || !password) {
             response
             .status(400)
             .json({ message: "Todos los campos son requeridos." });
         }
 
-        if (!name || !email || !password) {
+        if (!nombre || !email || !password) {
             response.status(400).json({ message: "Todos los campos son requeridos." });
         }
 
         const nuevoUsuario: Omit<User, 'id_user'> = {
-            nombre: name,
+            nombre: nombre,
             email,
             contraseña: password
         };
