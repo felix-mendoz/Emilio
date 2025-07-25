@@ -33,7 +33,7 @@ export class UserModel {
 
     const result = await pool.query(
       `INSERT INTO usuario (nombre, email, contrasena)
-       VALUES ($1, $2, $3)
+      VALUES ($1, $2, $3)
        RETURNING *`,
       [nombre, email, contraseña]
     );
