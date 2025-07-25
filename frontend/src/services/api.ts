@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:3000';
 
 // Tipos e interfaces
 export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
@@ -20,6 +20,11 @@ export interface User {
   email: string;
 }
 
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
 // Función base para llamadas API
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
@@ -36,7 +41,7 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+    throw new Error(errorData.message || `Error ${response.status}`);
   }
 
   return response.json();
@@ -44,13 +49,16 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
 // API para documentos
 export const documentsAPI = {
-  getAll: async (): Promise<Documento[]> => {
-    return fetchAPI('/documentos');
+  getAll: async (userId: string): Promise<Documento[]> => {
+    if (!userId) throw new Error('userId es requerido');
+    return fetchAPI(`/api/documents?user_id=${userId}`);
   },
 
-  upload: async (formData: FormData): Promise<Documento> => {
+  upload: async (formData: FormData, userId: string): Promise<Documento> => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/documentos`, {
+    formData.append('usuario_id', userId);
+
+    const response = await fetch(`${API_BASE_URL}/api/documents`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -59,10 +67,8 @@ export const documentsAPI = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Error al subir documento');
+      throw new Error('Error al subir documento');
     }
-
     return response.json();
   },
 
@@ -71,35 +77,27 @@ export const documentsAPI = {
     estado: EstadoDocumento;
     usuario_id: string;
   }): Promise<Documento> => {
-    return fetchAPI(`/documentos/${id}`, {
+    return fetchAPI(`/api/documents/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({
-        nombre_archivo: data.nombre_archivo,
-        estado: data.estado,
-        usuario_id: data.usuario_id
-      }),
+      body: JSON.stringify(data),
     });
   },
 
   delete: async (id: string): Promise<void> => {
-    await fetchAPI(`/documentos/${id}`, {
+    await fetchAPI(`/api/documents/${id}`, {
       method: 'DELETE',
     });
   },
-
-  getByUser: async (userId: string): Promise<Documento[]> => {
-    return fetchAPI(`/documentos/usuario/${userId}`);
-  },
 };
 
-// API para usuarios
+// API para usuarios (completa con register y login)
 export const usersAPI = {
   register: async (userData: {
     nombre: string;
     email: string;
     password: string;
-  }): Promise<User> => {
-    return fetchAPI('/register', {
+  }): Promise<AuthResponse> => {
+    return fetchAPI('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -108,8 +106,8 @@ export const usersAPI = {
   login: async (credentials: {
     email: string;
     password: string;
-  }): Promise<{ token: string; user: User }> => {
-    return fetchAPI('/login', {
+  }): Promise<AuthResponse> => {
+    return fetchAPI('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -135,6 +133,10 @@ export const usersAPI = {
       body: JSON.stringify(data),
     });
   },
+
+  listUsers: async (): Promise<User[]> => {
+    return fetchAPI('/users');
+  }
 };
 
 // Función para verificar token
