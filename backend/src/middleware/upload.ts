@@ -7,10 +7,15 @@ const storage = multer.diskStorage({
     const id_usuario = req.body.id_usuario;
     if (!id_usuario) return cb(new Error("ID de usuario requerido"), "");
 
-    const dir = path.join(__dirname, "..", "uploads", id_usuario);
-    fs.mkdirSync(dir, { recursive: true });
+    const safeUserId = path.basename(id_usuario); // Evita inyecciones de ruta
+    const dir = path.join(__dirname, "..", "uploads", safeUserId);
 
-    cb(null, dir);
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    } catch (err) {
+      cb(new Error("Error creando directorio del usuario"), "");
+    }
   },
   filename: (req, file, cb) => {
     const uniqueName = `${Date.now()}-${file.originalname}`;
@@ -18,4 +23,13 @@ const storage = multer.diskStorage({
   }
 });
 
-export const upload = multer({ storage });
+// (Opcional) Filtro de tipo de archivo
+const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Tipo de archivo no permitido'), false);
+  }
+  cb(null, true);
+};
+
+export const upload = multer({ storage, fileFilter }); // Puedes omitir fileFilter si no lo necesitas
