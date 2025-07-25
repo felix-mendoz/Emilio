@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Login from '../pages/Login';
 import Register from '../pages/register';
 import Home from '../pages/Home';
-import Documents from '../pages/gestionArchivos';
+import GestionArchivos from '../pages/gestionArchivos';
 import About from '../pages/About';
 import FAQ from '../pages/question';
 import Gallery from '../pages/Gallery';
@@ -18,9 +18,7 @@ const App = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-  
       setIsAuthenticated(true);
-  
     }
   }, []);
 
@@ -54,13 +52,13 @@ const App = () => {
         <Route 
           path="/" 
           element={
-            isAuthenticated ? <Home /> : <Navigate to="/login" />
+            isAuthenticated ? <Home userName={userData.name} /> : <Navigate to="/login" />
           } 
         />
         <Route 
-          path="/documents" 
+          path="/gestionArchivos" 
           element={
-            isAuthenticated ? <Documents /> : <Navigate to="/login" />
+            isAuthenticated ? <GestionArchivos userName={userData.name} userId={userData.id} /> : <Navigate to="/login" />
           } 
         />
         <Route 
@@ -76,7 +74,7 @@ const App = () => {
           } 
         />
         <Route 
-          path="/gallery" 
+          path="/Gallery" 
           element={
             isAuthenticated ? <Gallery /> : <Navigate to="/login" />
           } 
