@@ -18,7 +18,13 @@ export const aunthentifyUser = async (request: Request, response: Response) => {
             response.status(401).json({ message: 'Credenciales inválidas.' });
         }
 
-        response.status(200).json({ message: 'Bienvenido', user });
+        response.status(200).json({ message: 'Bienvenido', 
+            user: {
+                id: user?.id_user,
+                nombre: user?.nombre,
+                email: user?.email
+            } 
+        });
         
     } catch(error){
         console.log("El error fue: ", error);
