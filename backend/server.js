@@ -114,6 +114,7 @@ app.get("/api/documents", async (req, res) => {
 
 app.delete("/api/documents/:id", async (req, res) => {
   const { id } = req.params;
+  console.log("ID recibido para eliminar:", id);
   try {
     const result = await pool.query(
       "DELETE FROM archivo WHERE id_archivo = $1",
