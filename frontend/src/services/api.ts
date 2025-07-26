@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Tipos e interfaces
 export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
@@ -11,18 +11,13 @@ export interface Documento {
   fecha_subida: string;
   tamaño: string;
   url: string;
-  usuario_id: string;
 }
 
 export interface User {
   id: string;
   nombre: string;
   email: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
+  // Agrega más campos según necesites
 }
 
 // Función base para llamadas API
@@ -41,24 +36,21 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Error ${response.status}`);
+    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
   }
 
   return response.json();
 }
 
-// API para documentos
+// API para documentos (existente)
 export const documentsAPI = {
-  getAll: async (userId: string): Promise<Documento[]> => {
-    if (!userId) throw new Error('userId es requerido');
-    return fetchAPI(`/api/documents?user_id=${userId}`);
+  getAll: async (): Promise<Documento[]> => {
+    return fetchAPI('/documents');
   },
 
-  upload: async (formData: FormData, userId: string): Promise<Documento> => {
+  upload: async (formData: FormData): Promise<Documento> => {
     const token = localStorage.getItem('token');
-    formData.append('usuario_id', userId);
-
-    const response = await fetch(`${API_BASE_URL}/api/documents`, {
+    const response = await fetch(`${API_BASE_URL}/documents`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -67,37 +59,35 @@ export const documentsAPI = {
     });
 
     if (!response.ok) {
-      throw new Error('Error al subir documento');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Error al subir documento');
     }
+
     return response.json();
   },
 
-  update: async (id: string, data: {
-    nombre_archivo: string;
-    estado: EstadoDocumento;
-    usuario_id: string;
-  }): Promise<Documento> => {
-    return fetchAPI(`/api/documents/${id}`, {
+  update: async (id: string, data: { nombre_archivo: string; estado: string }): Promise<Documento> => {
+    return fetchAPI(`/documents/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
   delete: async (id: string): Promise<void> => {
-    await fetchAPI(`/api/documents/${id}`, {
+    await fetchAPI(`/documents/${id}`, {
       method: 'DELETE',
     });
   },
 };
 
-// API para usuarios (completa con register y login)
+// Nueva API para usuarios
 export const usersAPI = {
   register: async (userData: {
     nombre: string;
     email: string;
     password: string;
-  }): Promise<AuthResponse> => {
-    return fetchAPI('/api/register', {
+  }): Promise<User> => {
+    return fetchAPI('/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -106,8 +96,8 @@ export const usersAPI = {
   login: async (credentials: {
     email: string;
     password: string;
-  }): Promise<AuthResponse> => {
-    return fetchAPI('/api/login', {
+  }): Promise<{ token: string; user: User }> => {
+    return fetchAPI('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -123,36 +113,4 @@ export const usersAPI = {
       body: JSON.stringify(data),
     });
   },
-
-  changePassword: async (data: {
-    currentPassword: string;
-    newPassword: string;
-  }): Promise<void> => {
-    await fetchAPI('/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  listUsers: async (): Promise<User[]> => {
-    return fetchAPI('/users');
-  }
-};
-
-// Función para verificar token
-export const verifyToken = async (): Promise<boolean> => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) return false;
-
-    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
 };
