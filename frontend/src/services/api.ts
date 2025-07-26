@@ -45,12 +45,12 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 // API para documentos (existente)
 export const documentsAPI = {
   getAll: async (): Promise<Documento[]> => {
-    return fetchAPI('/documentos');
+    return fetchAPI('/documents');
   },
 
   upload: async (formData: FormData): Promise<Documento> => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/documentos`, {
+    const response = await fetch(`${API_BASE_URL}/documents`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -67,14 +67,14 @@ export const documentsAPI = {
   },
 
   update: async (id: string, data: { nombre_archivo: string; estado: string }): Promise<Documento> => {
-    return fetchAPI(`/documentos/${id}`, {
+    return fetchAPI(`/documents/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
   delete: async (id: string): Promise<void> => {
-    await fetchAPI(`/documentos/${id}`, {
+    await fetchAPI(`/documents/${id}`, {
       method: 'DELETE',
     });
   },

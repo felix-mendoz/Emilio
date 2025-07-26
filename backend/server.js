@@ -42,9 +42,9 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { nombre, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (!nombre || !email || !password) {
     return res
       .status(400)
       .json({ message: "Todos los campos son requeridos." });
@@ -53,7 +53,7 @@ app.post("/api/register", async (req, res) => {
   try {
     const result = await pool.query(
       "INSERT INTO usuario (nombre, email, contrasena) VALUES ($1, $2, $3) RETURNING id_user, nombre, email",
-      [name, email, password]
+      [nombre, email, password]
     );
 
     res.status(200).json({
@@ -136,8 +136,8 @@ app.put("/api/documents/:id", async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE archivo 
-       SET nombre_archivo = $1, extension = $2, estado = $3, ultima_revision = NOW() 
-       WHERE id_archivo = $4`,
+        SET nombre_archivo = $1, extension = $2, estado = $3, ultima_revision = NOW() 
+        WHERE id_archivo = $4`,
       [nombre_archivo, extension, estado, id]
     );
 
