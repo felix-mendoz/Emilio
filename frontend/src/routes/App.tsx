@@ -21,6 +21,8 @@ const App = () => {
     if (token) {
       setIsAuthenticated(true);
     }
+
+
   }, []);
 
   const handleLogout = () => {
