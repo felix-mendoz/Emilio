@@ -4,6 +4,8 @@ import Login from '../pages/Login';
 import Register from '../pages/register';
 import Home from '../pages/Home';
 import GestionArchivos from '../pages/gestionArchivos';
+import Materias from '../pages/materias';
+import Grupos from '../pages/Grupos';
 import About from '../pages/About';
 import FAQ from '../pages/question';
 import Gallery from '../pages/Gallery';
@@ -14,7 +16,6 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState({ name: '', id: '' });
 
-  // Verificación inicial de autenticación
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -59,6 +60,18 @@ const App = () => {
           path="/gestionArchivos" 
           element={
             isAuthenticated ? <GestionArchivos userName={userData.name} userId={userData.id} /> : <Navigate to="/login" />
+          } 
+        />
+        <Route 
+          path="/materias" 
+          element={
+            isAuthenticated ? <Materias userRole="admin" userId={userData.id} /> : <Navigate to="/login" />
+          } 
+        />
+        <Route 
+          path="/grupos" 
+          element={
+            isAuthenticated ? <Grupos userRole="admin" userId={userData.id} /> : <Navigate to="/login" />
           } 
         />
         <Route 
