@@ -323,8 +323,6 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
                           ...styles.statusBadge,
                           ...(t.estado === "completada"
                             ? styles.activeBadge
-                            : t.estado === "cancelada"
-                            ? styles.archivedBadge
                             : styles.inactiveBadge),
                         }}
                       >
@@ -572,8 +570,6 @@ const styles = {
     color: "#991b1b",
     border: "none",
   },
-
-  // Añadidos que faltaban
   errorMessage: {
     backgroundColor: "#fee2e2",
     color: "#dc2626",
