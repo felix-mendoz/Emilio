@@ -23,7 +23,7 @@ export interface Tarea {
   titulo: string;
   descripcion: string;
   fecha_entrega: string;
-  estado: 'pendiente' | 'completada' | 'cancelada';
+  estado: boolean;
   usuario_id: string;
   ruta_id?: string;
   created_at: string;

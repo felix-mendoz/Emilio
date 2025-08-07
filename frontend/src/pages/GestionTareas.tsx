@@ -13,10 +13,12 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
     titulo: string;
     descripcion: string;
     fecha_entrega: string;
+    estado: boolean;
   }>({
     titulo: "",
     descripcion: "",
     fecha_entrega: "",
+    estado: false, // pendiente = false
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +27,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
 
   // Pomodoro
   const [selectedTarea, setSelectedTarea] = useState<Tarea | null>(null);
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 min
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -33,6 +35,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
     setIsLoading(true);
     setError(null);
     try {
+      // 🔧 Ajuste: backend devuelve boolean
       const data = await tasksAPI.getByUser(userId);
       setTareas(data);
     } catch (err) {
@@ -64,7 +67,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
   const handlePomodoroFinish = async () => {
     if (!selectedTarea) return;
     const updated = await tasksAPI.update(selectedTarea.id, {
-      estado: "completada",
+      estado: true, // completada
     });
     setTareas((prev) =>
       prev.map((t) => (t.id === updated.id ? updated : t))
@@ -83,7 +86,6 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       const payload = {
         ...nuevaTarea,
         usuario_id: userId,
-        estado: "pendiente" as const,
       };
 
       if (editingId) {
@@ -122,11 +124,17 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       titulo: tarea.titulo,
       descripcion: tarea.descripcion,
       fecha_entrega: tarea.fecha_entrega,
+      estado: tarea.estado,
     });
   };
 
   const resetForm = () => {
-    setNuevaTarea({ titulo: "", descripcion: "", fecha_entrega: "" });
+    setNuevaTarea({
+      titulo: "",
+      descripcion: "",
+      fecha_entrega: "",
+      estado: false,
+    });
     setEditingId(null);
   };
 
@@ -141,6 +149,8 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       .toString()
       .padStart(2, "0")}`;
   };
+
+  const estadoTexto = (estado: boolean) => (estado ? "completada" : "pendiente");
 
   return (
     <div style={styles.container}>
@@ -189,6 +199,24 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
               setNuevaTarea({ ...nuevaTarea, fecha_entrega: e.target.value })
             }
           />
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Estado</label>
+          <select
+            style={styles.input}
+            value={nuevaTarea.estado ? "completada" : "pendiente"}
+            onChange={(e) =>
+              setNuevaTarea({
+                ...nuevaTarea,
+                estado: e.target.value === "completada",
+              })
+            }
+            disabled={!editingId}
+          >
+            <option value="pendiente">Pendiente</option>
+            <option value="completada">Completada</option>
+          </select>
         </div>
 
         {error && (
@@ -321,12 +349,12 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
                       <span
                         style={{
                           ...styles.statusBadge,
-                          ...(t.estado === "completada"
+                          ...(t.estado
                             ? styles.activeBadge
                             : styles.inactiveBadge),
                         }}
                       >
-                        {t.estado}
+                        {estadoTexto(t.estado)}
                       </span>
                     </td>
                     <td style={styles.tableCell}>
@@ -342,7 +370,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
                       >
                         Eliminar
                       </button>
-                      {t.estado === "pendiente" && (
+                      {!t.estado && (
                         <button
                           onClick={() => setSelectedTarea(t)}
                           style={{
