@@ -36,7 +36,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const data = await documentsAPI.getAll(userId);
+       const data = await documentsAPI.getByUser(userId);
         setDocumentos(data);
       } catch (err) {
         setError(
