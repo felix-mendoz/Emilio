@@ -6,7 +6,7 @@ export const Tarearouter = express.Router();
 Tarearouter.post("/", postTarea);
 
 // GET /tarea?id_materia=23 → obtener todos por materia
-Tarearouter.get("/por-ruta", getTareasPorMateria);
+Tarearouter.get("/por-materia", getTareasPorMateria);
 
 // GET /tarea?id_usuario=23 → obtener todos por usuario
 Tarearouter.get("/por-usuario", getTareasPorUsuario);
