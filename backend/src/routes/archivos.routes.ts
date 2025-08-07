@@ -8,7 +8,7 @@ export const Archivorouter = express.Router();
 Archivorouter.post("/:id", upload.single("guarda_archivo"), postArchivo);
 
 // GET /archivos?id_usuario=23 → obtener todos
-Archivorouter.get("/", getArchivos);
+Archivorouter.get("/usuario/:id", getArchivos);
 
 // GET /archivos/:id → obtener uno
 Archivorouter.get("/:id", getArchivo);

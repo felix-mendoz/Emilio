@@ -48,7 +48,7 @@ export const postArchivo = async (req: Request, res: Response) => {
 export const getArchivos = async (req: Request, res: Response) => {
   try {
 
-    const id_usuario = parseInt(req.query.id_usuario as string);
+    const id_usuario = parseInt(req.params.id);
 
     if(isNaN(id_usuario) || id_usuario < 1){
       res.status(400).json({ message: "id_usuario no valido."});
