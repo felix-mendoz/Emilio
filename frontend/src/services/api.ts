@@ -142,7 +142,7 @@ export const authAPI = {
  */
 export const documentsAPI = {
   getAll: async (userId: string): Promise<Documento[]> => {
-    const response = await fetch(`${API_BASE_URL}/archivos?id_usuario=${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/archivo?id_usuario=${userId}`, {
       headers: getAuthHeaders(),
     });
     const data = await handleResponse<Array<Record<string, any>>>(response);
@@ -159,7 +159,7 @@ export const documentsAPI = {
   },
 
   getById: async (id: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/archivo/${id}`, {
       headers: getAuthHeaders(),
     });
     const doc = await handleResponse<Record<string, any>>(response);
@@ -180,7 +180,7 @@ upload: async (formData: FormData, userId?: string): Promise<Documento> => {
     formData.append("id_usuario", userId);
   }
 
-  const response = await fetch(`${API_BASE_URL}/archivos`, {
+  const response = await fetch(`${API_BASE_URL}/archivo`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
@@ -221,7 +221,7 @@ upload: async (formData: FormData, userId?: string): Promise<Documento> => {
   },
 
   delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/archivo/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -231,7 +231,7 @@ upload: async (formData: FormData, userId?: string): Promise<Documento> => {
   },
 
   download: async (id: string): Promise<Blob> => {
-    const response = await fetch(`${API_BASE_URL}/archivos/${id}/download`, {
+    const response = await fetch(`${API_BASE_URL}/archivo/${id}/download`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
