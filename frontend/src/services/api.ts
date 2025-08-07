@@ -108,7 +108,7 @@ const getAuthHeaders = () => {
  */
 export const authAPI = {
   login: async (email: string, password: string): Promise<AuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/api/usuario/login`, {
+    const response = await fetch(`${API_BASE_URL}/usuario/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export const authAPI = {
   },
 
   register: async (userData: Omit<Usuario, 'id' | 'created_at' | 'updated_at'> & { password: string }): Promise<Usuario> => {
-    const response = await fetch(`${API_BASE_URL}/api/usuario/register`, {
+    const response = await fetch(`${API_BASE_URL}/usuario/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', 
