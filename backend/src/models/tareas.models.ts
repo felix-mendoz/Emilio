@@ -6,6 +6,7 @@ export interface Tarea {
   descripcion: string;
   id_materia?: number;
   estado?: boolean;
+  fecha_entrega?: Date;
 }
 
 export class TareaModel {
@@ -25,13 +26,13 @@ export class TareaModel {
   }
 
   static async create(tarea: Omit<Tarea, 'id_tarea'>): Promise<Tarea> {
-    const {titulo, descripcion, id_materia, estado} = tarea;
+    const {titulo, descripcion, id_materia, estado, fecha_entrega} = tarea;
 
     const result = await pool.query(
-      `INSERT INTO tareas (titulo, descripcion, id_materia, estado)
+      `INSERT INTO tareas (titulo, descripcion, id_materia, estado, fecha_entrega)
       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [id_materia, titulo, descripcion,id_materia, estado]
+      [titulo, descripcion, id_materia, estado, fecha_entrega]
     );
 
     return result.rows[0];
