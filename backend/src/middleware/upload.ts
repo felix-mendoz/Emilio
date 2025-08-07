@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
     if (!id_usuario) return cb(new Error("ID de usuario requerido"), "");
 
     const safeUserId = path.basename(id_usuario);
-    const dir = path.join(__dirname, "..", "uploads", safeUserId);
+    const dir = path.join(__dirname, "../..", "uploads", safeUserId);
 
     try {
       fs.mkdirSync(dir, { recursive: true });

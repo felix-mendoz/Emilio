@@ -28,3 +28,4 @@ dist-ssr
 
 # Archivos dentro de upload
 backend/src/uploads
+backend/uploads
