@@ -18,6 +18,18 @@ export interface Documento {
   usuario_id: string;
 }
 
+export interface Tarea {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  fecha_entrega: string;
+  estado: 'pendiente' | 'completada' | 'cancelada';
+  usuario_id: string;
+  ruta_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: string;
   nombre: string;
@@ -92,11 +104,45 @@ const getAuthHeaders = () => {
 };
 
 /**
- * API para gestión de documentos (con id_archivo)
+ * API para autenticación y usuarios
+ */
+export const authAPI = {
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    return handleResponse<AuthResponse>(response);
+  },
+
+  register: async (userData: Omit<Usuario, 'id' | 'created_at' | 'updated_at'> & { password: string }): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+    return handleResponse<Usuario>(response);
+  },
+
+  getCurrentUser: async (): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Usuario>(response);
+  },
+};
+
+/**
+ * API para gestión de documentos
  */
 export const documentsAPI = {
   getAll: async (userId: string): Promise<Documento[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/documents`, {
+    const response = await fetch(`${API_BASE_URL}/archivos?id_usuario=${userId}`, {
       headers: getAuthHeaders(),
     });
     const data = await handleResponse<Array<Record<string, any>>>(response);
@@ -113,7 +159,7 @@ export const documentsAPI = {
   },
 
   getById: async (id: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/api/documents/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
       headers: getAuthHeaders(),
     });
     const doc = await handleResponse<Record<string, any>>(response);
@@ -129,29 +175,34 @@ export const documentsAPI = {
     };
   },
 
-  upload: async (formData: FormData, userId: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/documents`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
-      },
-      body: formData,
-    });
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo,
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      tamaño: doc.tamaño || doc.size,
-      estado: doc.estado,
-      fecha_subida: doc.fecha_subida || doc.upload_date,
-      url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
-    };
-  },
+upload: async (formData: FormData, userId?: string): Promise<Documento> => {
+  if (userId) {
+    formData.append("id_usuario", userId);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/archivos`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
+    },
+    body: formData,
+  });
+
+  const doc = await handleResponse<Record<string, any>>(response);
+  return {
+    id_archivo: doc.id || doc.id_archivo,
+    nombre_archivo: doc.nombre_archivo,
+    extension: doc.extension,
+    tamaño: doc.tamaño || doc.size,
+    estado: doc.estado,
+    fecha_subida: doc.fecha_subida || doc.upload_date,
+    url: doc.url || doc.download_url,
+    usuario_id: doc.usuario_id || doc.user_id,
+  };
+},
 
   update: async (id: string, updates: Partial<Documento>): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/api/documents/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -170,7 +221,7 @@ export const documentsAPI = {
   },
 
   delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api/documents/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -180,7 +231,7 @@ export const documentsAPI = {
   },
 
   download: async (id: string): Promise<Blob> => {
-    const response = await fetch(`${API_BASE_URL}/api/documents/${id}/download`, {
+    const response = await fetch(`${API_BASE_URL}/archivos/${id}/download`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
@@ -191,26 +242,80 @@ export const documentsAPI = {
 };
 
 /**
+ * API para gestión de tareas
+ */
+export const tasksAPI = {
+  getByUser: async (userId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario?id_usuario=${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  getByRoute: async (routeId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-ruta?id_ruta=${routeId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  getById: async (id: string): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(taskData),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+};
+
+/**
  * API para gestión académica (Materias y Grupos)
  */
 export const academicAPI = {
   // Materias
   getMaterias: async (): Promise<MateriaWithRelations[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias`, {
+    const response = await fetch(`${API_BASE_URL}/materias`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<MateriaWithRelations[]>(response);
   },
 
   getMateriaById: async (id: string): Promise<MateriaWithRelations> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/materias/${id}`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<MateriaWithRelations>(response);
   },
 
   createMateria: async (materia: Omit<Materia, 'id' | 'created_at' | 'updated_at'>): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias`, {
+    const response = await fetch(`${API_BASE_URL}/materias`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(materia),
@@ -222,7 +327,7 @@ export const academicAPI = {
     id: string,
     updates: Partial<Omit<Materia, 'id' | 'created_at' | 'updated_at'>>
   ): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/materias/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -231,7 +336,7 @@ export const academicAPI = {
   },
 
   deleteMateria: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/materias/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -242,21 +347,21 @@ export const academicAPI = {
 
   // Grupos
   getGrupos: async (): Promise<GrupoWithRelations[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos`, {
+    const response = await fetch(`${API_BASE_URL}/grupos`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<GrupoWithRelations[]>(response);
   },
 
   getGrupoById: async (id: string): Promise<GrupoWithRelations> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<GrupoWithRelations>(response);
   },
 
   createGrupo: async (grupo: Omit<Grupo, 'id' | 'created_at' | 'updated_at'>): Promise<Grupo> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos`, {
+    const response = await fetch(`${API_BASE_URL}/grupos`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(grupo),
@@ -268,7 +373,7 @@ export const academicAPI = {
     id: string,
     updates: Partial<Omit<Grupo, 'id' | 'created_at' | 'updated_at'>>
   ): Promise<Grupo> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -277,7 +382,7 @@ export const academicAPI = {
   },
 
   deleteGrupo: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -287,7 +392,7 @@ export const academicAPI = {
   },
 
   addEstudiantesToGrupo: async (grupoId: string, estudiantesIds: string[]): Promise<GrupoWithRelations> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos/${grupoId}/estudiantes`, {
+    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ estudiantesIds }),
@@ -296,7 +401,7 @@ export const academicAPI = {
   },
 
   removeEstudianteFromGrupo: async (grupoId: string, estudianteId: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api/grupos/${grupoId}/estudiantes/${estudianteId}`, {
+    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes/${estudianteId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -307,113 +412,24 @@ export const academicAPI = {
 
   // Usuarios
   getProfesores: async (): Promise<Usuario[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/usuarios?rol=profesor`, {
+    const response = await fetch(`${API_BASE_URL}/usuarios?rol=profesor`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<Usuario[]>(response);
   },
 
   getEstudiantes: async (): Promise<Estudiante[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/usuarios?rol=estudiante`, {
+    const response = await fetch(`${API_BASE_URL}/usuarios?rol=estudiante`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<Estudiante[]>(response);
   },
 
   getEstudiantesSinGrupo: async (): Promise<Estudiante[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/usuarios?rol=estudiante&sin_grupo=true`, {
+    const response = await fetch(`${API_BASE_URL}/usuarios?rol=estudiante&sin_grupo=true`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<Estudiante[]>(response);
-  },
-
-  // Relaciones
-  asignarMateriaAGrupo: async (materiaId: string, grupoId: string): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${materiaId}/grupo`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ grupoId }),
-    });
-    return handleResponse<Materia>(response);
-  },
-
-  desasignarMateriaDeGrupo: async (materiaId: string): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${materiaId}/grupo`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Materia>(response);
-  },
-
-  asignarProfesorAMateria: async (materiaId: string, profesorId: string): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${materiaId}/profesor`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ profesorId }),
-    });
-    return handleResponse<Materia>(response);
-  },
-
-  desasignarProfesorDeMateria: async (materiaId: string): Promise<Materia> => {
-    const response = await fetch(`${API_BASE_URL}/api/materias/${materiaId}/profesor`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Materia>(response);
-  },
-};
-
-/**
- * API para autenticación
- */
-export const authAPI = {
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-    return handleResponse<AuthResponse>(response);
-  },
-
-  register: async (userData: Omit<Usuario, 'id' | 'created_at' | 'updated_at'> & { password: string }): Promise<Usuario> => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-    return handleResponse<Usuario>(response);
-  },
-
-  getCurrentUser: async (): Promise<Usuario> => {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Usuario>(response);
-  },
-
-  updateUser: async (updates: Partial<Usuario>): Promise<Usuario> => {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    return handleResponse<Usuario>(response);
-  },
-
-  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
   },
 };
 
