@@ -32,4 +32,4 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   cb(null, true);
 };
 
-export const upload = multer({ storage, fileFilter }); // Puedes omitir fileFilter si no lo necesitas
+export const upload = multer({storage});

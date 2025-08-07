@@ -1,24 +1,20 @@
 import express from 'express';
-import {aunthentifyUser,registerUser} from './controllers/user.controller';
-import {postArchivo} from './controllers/archivo.controller'
-
+import { Archivorouter } from './routes/archivos.routes';
+import { Userrouter } from './routes/users.routes';
+import { Tarearouter } from './routes/tareas.routes';
 export const router = express.Router();
 
 // #################################
 //    U S E R       R O U T E S
 // #################################
 
-// Log in the system
-router.post("/login", aunthentifyUser);
+// rutas para los usuarios
+router.use("/usuario", Userrouter);
 
-// Create an account
-router.post("/register",registerUser);
+// rutas para los archivos
+router.use("/archivo",Archivorouter);
 
-
-// // Route to post data {POSTS}
-// router.post("/data",postData);
-
-// router.get("/archivos", getArchivo); //aqui hay que poner el id del usuario billy tu te encargas
-// //router.post("/archivos", upload.single("file"), postArchivo);
+//rutas para las tareas
+router.use("/tarea", Tarearouter);
 
 export default router;

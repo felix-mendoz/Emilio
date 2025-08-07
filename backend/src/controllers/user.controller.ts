@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
-import { UserModel } from "../models/users.model";
-import { User } from "../models/users.model";
+import {User , UserModel} from "../models/users.model";
+import { request } from "http";
 
 export const aunthentifyUser = async (request: Request, response: Response) => {
     try {
