@@ -163,8 +163,8 @@ export const documentsAPI = {
     }));
   },
 
-  getById: async (id: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${id}`, {
+  getById: async (userId: string): Promise<Documento> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
       headers: getAuthHeaders(),
     });
     const doc = await handleResponse<Record<string, any>>(response);
