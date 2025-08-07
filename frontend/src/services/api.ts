@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
 
 export interface Documento {
-  id: string;
+  id_archivo: number;
   nombre_archivo: string;
   extension: string;
   estado: EstadoDocumento;
@@ -45,7 +45,7 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 // API para documentos (existente)
 export const documentsAPI = {
   getAll: async (): Promise<Documento[]> => {
-    return fetchAPI('/documents');
+    return fetchAPI('/archivo');
   },
 
   upload: async (formData: FormData): Promise<Documento> => {
@@ -87,7 +87,7 @@ export const usersAPI = {
     email: string;
     password: string;
   }): Promise<User> => {
-    return fetchAPI('/register', {
+    return fetchAPI('/usuario/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -97,7 +97,7 @@ export const usersAPI = {
     email: string;
     password: string;
   }): Promise<{ token: string; user: User }> => {
-    return fetchAPI('/login', {
+    return fetchAPI('/usuario/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });

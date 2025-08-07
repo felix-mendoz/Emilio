@@ -15,7 +15,7 @@ export const postTarea = async (req: Request, res: Response) => {
 
     const nuevaTarea = await TareaModel.create(Tarea);
 
-    res.status(200).json(nuevaTarea);
+    res.status(201).json(nuevaTarea);
 
   } catch (error) {
     console.error(error);
