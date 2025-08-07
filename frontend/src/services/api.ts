@@ -146,8 +146,9 @@ export const authAPI = {
  * API para gestión de documentos
  */
 export const documentsAPI = {
-  getAll: async (userId: string): Promise<Documento[]> => {
-    const response = await fetch(`${API_BASE_URL}/archivo?id_usuario=${userId}`, {
+  // Obtener todos los archivos de un usuario específico
+  getByUser: async (userId: string): Promise<Documento[]> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/usuario/${userId}`, {
       headers: getAuthHeaders(),
     });
     const data = await handleResponse<Array<Record<string, any>>>(response);
@@ -163,8 +164,9 @@ export const documentsAPI = {
     }));
   },
 
-  getById: async (userId: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
+  // Obtener un archivo específico por ID
+  getById: async (fileId: string): Promise<Documento> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       headers: getAuthHeaders(),
     });
     const doc = await handleResponse<Record<string, any>>(response);
@@ -180,34 +182,32 @@ export const documentsAPI = {
     };
   },
 
-upload: async (formData: FormData, userId?: string): Promise<Documento> => {
-  if (userId) {
-    formData.append("id_user", userId); // Cambiar a id_user para coincidir con el backend
-  }
+  // Subir archivo para un usuario específico
+  upload: async (formData: FormData, userId: string): Promise<Documento> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/usuario/${userId}`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
+      },
+      body: formData,
+    });
 
-  const response = await fetch(`${API_BASE_URL}/archivo`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
-    },
-    body: formData,
-  });
+    const doc = await handleResponse<Record<string, any>>(response);
+    return {
+      id_archivo: doc.id || doc.id_archivo,
+      nombre_archivo: doc.nombre_archivo,
+      extension: doc.extension,
+      tamaño: doc.tamaño || doc.size,
+      estado: doc.estado,
+      fecha_subida: doc.fecha_subida || doc.upload_date,
+      url: doc.url || doc.download_url,
+      usuario_id: doc.usuario_id || doc.user_id,
+    };
+  },
 
-  const doc = await handleResponse<Record<string, any>>(response);
-  return {
-    id_archivo: doc.id || doc.id_archivo,
-    nombre_archivo: doc.nombre_archivo,
-    extension: doc.extension,
-    tamaño: doc.tamaño || doc.size,
-    estado: doc.estado,
-    fecha_subida: doc.fecha_subida || doc.upload_date,
-    url: doc.url || doc.download_url,
-    usuario_id: doc.usuario_id || doc.user_id,
-  };
-},
-
-  update: async (id: string, updates: Partial<Documento>): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivos/${id}`, {
+  // Actualizar un archivo específico
+  update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -225,8 +225,9 @@ upload: async (formData: FormData, userId?: string): Promise<Documento> => {
     };
   },
 
-  delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${id}`, {
+  // Eliminar un archivo específico
+  delete: async (fileId: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -234,6 +235,7 @@ upload: async (formData: FormData, userId?: string): Promise<Documento> => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
   },
+
 
   download: async (id: string): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${id}/download`, {
