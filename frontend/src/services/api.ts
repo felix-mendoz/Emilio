@@ -8,7 +8,7 @@ const API_BASE_URL = 'http://localhost:3000';
 export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
 
 export interface Documento {
-  id: string;
+  id_archivo: number;
   nombre_archivo: string;
   extension: string;
   tamaño: string;
