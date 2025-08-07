@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usersAPI } from "../services/api";
+import { authAPI } from "../services/api";
 import loginImage from "../assets/login.png";
 
 const Register: React.FC = () => {
     const [formData, setFormData] = useState({
         nombre: "",
+        apellido: "",
         email: "",
         password: "",
         confirmPassword: "",
+        rol: "estudiante" as "profesor" | "estudiante" | "admin",
     });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
@@ -38,19 +40,21 @@ const Register: React.FC = () => {
         }
 
         setIsLoading(true);
-        
+
         try {
-            await usersAPI.register({
+            await authAPI.register({
                 nombre: formData.nombre,
+                apellido: formData.apellido,
                 email: formData.email,
                 password: formData.password,
+                rol: formData.rol,
             });
             setSuccess(true);
             setTimeout(() => navigate("/login"), 2000);
         } catch (err) {
             setError(
-                err instanceof Error 
-                    ? err.message 
+                err instanceof Error
+                    ? err.message
                     : "Error al registrar usuario. Por favor, inténtalo de nuevo."
             );
         } finally {
@@ -62,49 +66,68 @@ const Register: React.FC = () => {
         <div style={styles.loginPage}>
             <div style={styles.loginContainer}>
                 <div style={styles.leftPanel}>
-                    <img 
-                        src={loginImage} 
-                        alt="Register" 
+                    <img
+                        src={loginImage}
+                        alt="Register"
                         style={styles.loginImage}
                     />
                     <h2 style={styles.brandTitle}>AcadexPro</h2>
                     <p style={styles.brandSubtitle}>Gestión académica integral</p>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} style={styles.loginForm}>
                     <h2 style={styles.formTitle}>Registro de Usuario</h2>
-                    
+
                     {error && (
                         <div style={styles.errorMessage}>
                             <svg style={styles.errorIcon} viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                                <path
+                                    fill="currentColor"
+                                    d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"
+                                />
                             </svg>
                             {error}
                         </div>
                     )}
-                    
+
                     {success && (
                         <div style={styles.successMessage}>
                             <svg style={styles.successIcon} viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                                <path
+                                    fill="currentColor"
+                                    d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+                                />
                             </svg>
                             ¡Registro exitoso! Redirigiendo al login...
                         </div>
                     )}
-                    
+
                     <div style={styles.formGroup}>
-                        <label style={styles.label}>Nombre Completo</label>
+                        <label style={styles.label}>Nombre</label>
                         <input
                             type="text"
                             name="nombre"
                             value={formData.nombre}
                             onChange={handleChange}
                             style={styles.input}
-                            placeholder="Tu nombre completo"
+                            placeholder="Tu nombre"
                             required
                         />
                     </div>
-                    
+
+                    <div style={styles.formGroup}>
+                        <label style={styles.label}>Apellido</label>
+                        <input
+                            type="text"
+                            name="apellido"
+                            value={formData.apellido}
+                            onChange={handleChange}
+                            style={styles.input}
+                            placeholder="Tu apellido"
+                            required
+                        />
+                    </div>
+
                     <div style={styles.formGroup}>
                         <label style={styles.label}>Correo Electrónico</label>
                         <input
@@ -117,7 +140,7 @@ const Register: React.FC = () => {
                             required
                         />
                     </div>
-                    
+
                     <div style={styles.formGroup}>
                         <label style={styles.label}>Contraseña</label>
                         <input
@@ -131,7 +154,7 @@ const Register: React.FC = () => {
                             minLength={6}
                         />
                     </div>
-                    
+
                     <div style={styles.formGroup}>
                         <label style={styles.label}>Confirmar Contraseña</label>
                         <input
@@ -145,26 +168,47 @@ const Register: React.FC = () => {
                             minLength={6}
                         />
                     </div>
-                    
-                    <button 
-                        type="submit" 
+
+                    <div style={styles.formGroup}>
+                        <label style={styles.label}>Rol</label>
+                        <select
+                            name="rol"
+                            value={formData.rol}
+                            onChange={handleChange}
+                            style={styles.select}
+                        >
+                            <option value="estudiante">Estudiante</option>
+                            <option value="profesor">Profesor</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <button
+                        type="submit"
                         style={isLoading || success ? styles.submitButtonLoading : styles.submitButton}
                         disabled={isLoading || success}
                     >
                         {isLoading ? (
                             <>
                                 <svg style={styles.spinner} viewBox="0 0 50 50">
-                                    <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="5"></circle>
+                                    <circle
+                                        cx="25"
+                                        cy="25"
+                                        r="20"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    ></circle>
                                 </svg>
                                 Registrando...
                             </>
                         ) : 'Registrarse'}
                     </button>
-                    
+
                     <div style={styles.registerPrompt}>
                         ¿Ya tienes una cuenta?{' '}
-                        <a 
-                            href="#" 
+                        <a
+                            href="#"
                             style={styles.registerLink}
                             onClick={(e) => {
                                 e.preventDefault();
@@ -251,6 +295,13 @@ const styles = {
         border: '1px solid #ddd',
         fontSize: '16px',
         transition: 'border 0.3s',
+    },
+    select: {
+        width: '100%',
+        padding: '12px 15px',
+        borderRadius: '8px',
+        border: '1px solid #ddd',
+        fontSize: '16px',
     },
     inputFocus: {
         outline: 'none',

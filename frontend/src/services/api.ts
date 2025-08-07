@@ -8,7 +8,7 @@ const API_BASE_URL = 'http://localhost:3000';
 export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
 
 export interface Documento {
-  id: string;
+  id_archivo: string;
   nombre_archivo: string;
   extension: string;
   tamaño: string;
@@ -92,21 +92,41 @@ const getAuthHeaders = () => {
 };
 
 /**
- * API para gestión de documentos
+ * API para gestión de documentos (con id_archivo)
  */
 export const documentsAPI = {
   getAll: async (userId: string): Promise<Documento[]> => {
     const response = await fetch(`${API_BASE_URL}/api/users/${userId}/documents`, {
       headers: getAuthHeaders(),
     });
-    return handleResponse<Documento[]>(response);
+    const data = await handleResponse<Array<Record<string, any>>>(response);
+    return data.map(doc => ({
+      id_archivo: doc.id || doc.id_archivo,
+      nombre_archivo: doc.nombre_archivo,
+      extension: doc.extension,
+      tamaño: doc.tamaño || doc.size,
+      estado: doc.estado,
+      fecha_subida: doc.fecha_subida || doc.upload_date,
+      url: doc.url || doc.download_url,
+      usuario_id: doc.usuario_id || doc.user_id
+    }));
   },
 
   getById: async (id: string): Promise<Documento> => {
     const response = await fetch(`${API_BASE_URL}/api/documents/${id}`, {
       headers: getAuthHeaders(),
     });
-    return handleResponse<Documento>(response);
+    const doc = await handleResponse<Record<string, any>>(response);
+    return {
+      id_archivo: doc.id || doc.id_archivo,
+      nombre_archivo: doc.nombre_archivo,
+      extension: doc.extension,
+      tamaño: doc.tamaño || doc.size,
+      estado: doc.estado,
+      fecha_subida: doc.fecha_subida || doc.upload_date,
+      url: doc.url || doc.download_url,
+      usuario_id: doc.usuario_id || doc.user_id
+    };
   },
 
   upload: async (formData: FormData, userId: string): Promise<Documento> => {
@@ -117,7 +137,17 @@ export const documentsAPI = {
       },
       body: formData,
     });
-    return handleResponse<Documento>(response);
+    const doc = await handleResponse<Record<string, any>>(response);
+    return {
+      id_archivo: doc.id || doc.id_archivo,
+      nombre_archivo: doc.nombre_archivo,
+      extension: doc.extension,
+      tamaño: doc.tamaño || doc.size,
+      estado: doc.estado,
+      fecha_subida: doc.fecha_subida || doc.upload_date,
+      url: doc.url || doc.download_url,
+      usuario_id: doc.usuario_id || doc.user_id
+    };
   },
 
   update: async (id: string, updates: Partial<Documento>): Promise<Documento> => {
@@ -126,7 +156,17 @@ export const documentsAPI = {
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
     });
-    return handleResponse<Documento>(response);
+    const doc = await handleResponse<Record<string, any>>(response);
+    return {
+      id_archivo: doc.id || doc.id_archivo,
+      nombre_archivo: doc.nombre_archivo,
+      extension: doc.extension,
+      tamaño: doc.tamaño || doc.size,
+      estado: doc.estado,
+      fecha_subida: doc.fecha_subida || doc.upload_date,
+      url: doc.url || doc.download_url,
+      usuario_id: doc.usuario_id || doc.user_id
+    };
   },
 
   delete: async (id: string): Promise<void> => {
