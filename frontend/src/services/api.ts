@@ -182,7 +182,7 @@ export const documentsAPI = {
 
 upload: async (formData: FormData, userId?: string): Promise<Documento> => {
   if (userId) {
-    formData.append("id_usuario", userId);
+    formData.append("id_user", userId); // Cambiar a id_user para coincidir con el backend
   }
 
   const response = await fetch(`${API_BASE_URL}/archivo`, {

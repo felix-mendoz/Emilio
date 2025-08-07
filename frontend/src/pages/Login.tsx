@@ -30,7 +30,10 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
 
             localStorage.setItem('token', token);
             setIsAuthenticated(true);
-            setUserData({ name: user.nombre, id: user.id });
+            setUserData({ 
+      name: user.nombre, 
+      id: user.id 
+    });
             navigate("/");
         } catch (err) {
             setError(err instanceof Error ? err.message : "Credenciales incorrectas");
