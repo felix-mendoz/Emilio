@@ -40,7 +40,7 @@ export interface User {
 export interface AuthResponse {
   token: string;
   user: {
-    id_user: string; // ← Cambiado de `id` a `id_user`
+    id: string;
     nombre: string;
     email: string;
   };
