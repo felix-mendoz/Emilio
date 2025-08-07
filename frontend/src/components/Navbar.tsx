@@ -20,6 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout, userName }) => {
             <ul className='navbar-menu'>
                 <li><Link to="/">Inicio</Link></li>
                 <li><Link to="/gestionArchivos">Documentos</Link></li>
+                <li><Link to="/tareas">Tareas</Link></li>      {/* ✅ NUEVO */}
                 <li><Link to="/materias">Materias</Link></li>
                 <li><Link to="/grupos">Grupos</Link></li>
                 <li><Link to="/about">Sobre nosotros</Link></li>

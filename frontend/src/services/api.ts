@@ -249,60 +249,6 @@ export const documentsAPI = {
 };
 
 /**
- * API para gestión de tareas
- */
-export const tasksAPI = {
-  getByUser: async (userId: string): Promise<Tarea[]> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario?id_usuario=${userId}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea[]>(response);
-  },
-
-  getByRoute: async (routeId: string): Promise<Tarea[]> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/por-ruta?id_ruta=${routeId}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea[]>(response);
-  },
-
-  getById: async (id: string): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(taskData),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  },
-};
-
-/**
  * API para gestión académica (Materias y Grupos)
  */
 export const academicAPI = {
@@ -479,4 +425,57 @@ export const uploadFile = async (file: File, endpoint: string, additionalData: R
     body: formData,
   });
   return handleResponse(response);
+};
+
+
+/**
+ * API para gestión de tareas
+ */
+export const tasksAPI = {
+  // Obtener todas las tareas de un usuario
+  getByUser: async (userId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario?id_usuario=${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  // Obtener una tarea por ID
+  getById: async (id: string): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  // Crear nueva tarea
+  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(taskData),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  // Actualizar tarea
+  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  // Eliminar tarea
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
 };

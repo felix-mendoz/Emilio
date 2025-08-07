@@ -4,6 +4,7 @@ import Login from '../pages/Login';
 import Register from '../pages/register';
 import Home from '../pages/Home';
 import GestionArchivos from '../pages/gestionArchivos';
+import GestionTareas from '../pages/GestionTareas'; 
 import Materias from '../pages/materias';
 import Grupos from '../pages/Grupos';
 import About from '../pages/About';
@@ -21,8 +22,6 @@ const App = () => {
     if (token) {
       setIsAuthenticated(true);
     }
-
-
   }, []);
 
   const handleLogout = () => {
@@ -64,6 +63,13 @@ const App = () => {
             isAuthenticated ? <GestionArchivos userName={userData.name} userId={userData.id} /> : <Navigate to="/login" />
           } 
         />
+        {/* ✅ NUEVA RUTA */}
+        <Route 
+          path="/tareas" 
+          element={
+            isAuthenticated ? <GestionTareas userName={userData.name} userId={userData.id} /> : <Navigate to="/login" />
+          } 
+        />
         <Route 
           path="/materias" 
           element={
@@ -78,21 +84,15 @@ const App = () => {
         />
         <Route 
           path="/about" 
-          element={
-            isAuthenticated ? <About /> : <Navigate to="/login" />
-          } 
+          element={ isAuthenticated ? <About /> : <Navigate to="/login" /> } 
         />
         <Route 
           path="/question" 
-          element={
-            isAuthenticated ? <FAQ /> : <Navigate to="/login" />
-          } 
+          element={ isAuthenticated ? <FAQ /> : <Navigate to="/login" /> } 
         />
         <Route 
           path="/Gallery" 
-          element={
-            isAuthenticated ? <Gallery /> : <Navigate to="/login" />
-          } 
+          element={ isAuthenticated ? <Gallery /> : <Navigate to="/login" /> } 
         />
         <Route 
           path="*" 
