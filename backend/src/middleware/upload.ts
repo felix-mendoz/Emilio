@@ -4,10 +4,10 @@ import fs from "fs";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const id_usuario = req.body.id_usuario;
+    const id_usuario = req.params.id;
     if (!id_usuario) return cb(new Error("ID de usuario requerido"), "");
 
-    const safeUserId = path.basename(id_usuario); // Evita inyecciones de ruta
+    const safeUserId = path.basename(id_usuario);
     const dir = path.join(__dirname, "..", "uploads", safeUserId);
 
     try {

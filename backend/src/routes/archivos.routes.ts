@@ -5,7 +5,7 @@ export const Archivorouter = express.Router();
 
 
 // POST /archivos → subir archivo
-Archivorouter.post("/", upload.single("file"), postArchivo);
+Archivorouter.post("/:id", upload.single("file"), postArchivo);
 
 // GET /archivos?id_usuario=23 → obtener todos
 Archivorouter.get("/", getArchivos);
