@@ -36,9 +36,14 @@ export interface User {
   email: string;
 }
 
+
 export interface AuthResponse {
   token: string;
-  user: User;
+  user: {
+    id_user: string; // ← Cambiado de `id` a `id_user`
+    nombre: string;
+    email: string;
+  };
 }
 
 export interface Materia {
