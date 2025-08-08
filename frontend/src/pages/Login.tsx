@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../assets/login.png";
-import { usersAPI } from "../services/api";
+import { authAPI } from "../services/api";
 
 interface LoginProps {
     setIsAuthenticated: (value: boolean) => void;
@@ -26,11 +26,14 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
 
         setIsLoading(true);
         try {
-            const { token, user } = await usersAPI.login({ email, password });
+            const { token, user } = await authAPI.login(email, password);
 
             localStorage.setItem('token', token);
             setIsAuthenticated(true);
-            setUserData({ name: user.nombre, id: user.id_user });
+            setUserData({ 
+      name: user.nombre, 
+      id: user.id 
+    });
             navigate("/");
         } catch (err) {
             setError(err instanceof Error ? err.message : "Credenciales incorrectas");

@@ -36,8 +36,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const data = await documentsAPI.getAll();
-        
+       const data = await documentsAPI.getByUser(userId);
         setDocumentos(data);
       } catch (err) {
         setError(
@@ -49,7 +48,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       }
     };
     loadDocuments();
-  }, []);
+  }, [userId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,7 +82,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("estado", nuevoDocumento.estado);
       formData.append("id_usuario", userId);
 
-      const createdDocument = await documentsAPI.upload(formData);
+      const createdDocument = await documentsAPI.upload(formData, userId);
       setDocumentos([...documentos, createdDocument]);
       setSuccessMessage("Documento subido correctamente");
       resetForm();
@@ -109,7 +108,9 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       });
 
       setDocumentos(
-        documentos.map((doc) => (doc.id === editingId ? updatedDocument : doc))
+        documentos.map((doc) =>
+          doc.id_archivo === editingId ? updatedDocument : doc
+        )
       );
       setSuccessMessage("Documento actualizado correctamente");
       resetForm();
@@ -169,8 +170,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       doc.nombre_archivo?.toLowerCase().includes(filter.toLowerCase()) ||
       doc.extension?.toLowerCase().includes(filter.toLowerCase())
   );
-
-
 
   return (
     <div style={styles.container}>
@@ -313,6 +312,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
           )}
         </div>
       </div>
+
       <div style={styles.filterContainer}>
         <input
           type="text"
@@ -322,6 +322,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
           style={styles.filterInput}
         />
       </div>
+
       <div style={styles.documentsContainer}>
         <div style={styles.documentsHeader}>
           <h3 style={styles.documentsTitle}>
@@ -430,298 +431,299 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 };
 
 export default GestionArchivos;
-  // Estilos en objeto TypeScript
-  const styles = {
-    container: {
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "2rem",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      backgroundColor: "rgba(255, 255, 255, 0.85)",
-      borderRadius: "12px",
-      backdropFilter: "blur(10px)",
-      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-      border: "1px solid rgba(255, 255, 255, 0.18)",
-    },
-    header: {
-      marginBottom: "2rem",
-      textAlign: "center" as const,
-    },
-    title: {
-      fontSize: "2rem",
-      fontWeight: "bold",
-      color: "#2c3e50",
-      marginBottom: "0.5rem",
-    },
-    welcome: {
-      fontSize: "1rem",
-      color: "#7f8c8d",
-    },
-    userName: {
-      fontWeight: "bold",
-      color: "#3498db",
-    },
-    filterContainer: {
-      marginBottom: "2rem",
-    },
-    filterInput: {
-      width: "100%",
-      padding: "0.75rem 1rem",
-      borderRadius: "8px",
-      border: "1px solid #dfe6e9",
-      fontSize: "1rem",
-      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-    },
-    card: {
-      backgroundColor: "white",
-      borderRadius: "10px",
-      padding: "2rem",
-      marginBottom: "2rem",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
-    },
-    cardTitle: {
-      fontSize: "1.25rem",
-      fontWeight: "600",
-      marginBottom: "1.5rem",
-      color: "#2c3e50",
-    },
-    formGroup: {
-      marginBottom: "1.5rem",
-    },
-    label: {
-      display: "block",
-      marginBottom: "0.5rem",
-      fontWeight: "600",
-      color: "#34495e",
-      fontSize: "0.9rem",
-    },
-    fileUpload: {
-      position: "relative" as const,
-      marginBottom: "1rem",
-    },
-    fileInput: {
-      position: "absolute" as const,
-      width: "1px",
-      height: "1px",
-      padding: "0",
-      margin: "-1px",
-      overflow: "hidden",
-      clip: "rect(0, 0, 0, 0)",
-      border: "0",
-    },
-    fileUploadLabel: {
-      display: "block",
-      padding: "0.75rem 1rem",
-      backgroundColor: "#f8f9fa",
-      border: "1px dashed #bdc3c7",
-      borderRadius: "8px",
-      textAlign: "center" as const,
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    },
-    input: {
-      width: "100%",
-      padding: "0.75rem 1rem",
-      borderRadius: "8px",
-      border: "1px solid #dfe6e9",
-      fontSize: "1rem",
-      transition: "border 0.3s ease",
-    },
-    select: {
-      width: "100%",
-      padding: "0.75rem 1rem",
-      borderRadius: "8px",
-      border: "1px solid #dfe6e9",
-      fontSize: "1rem",
-      backgroundColor: "white",
-      cursor: "pointer",
-    },
-    errorMessage: {
-      backgroundColor: "#fee2e2",
-      color: "#dc2626",
-      padding: "0.75rem 1rem",
-      borderRadius: "8px",
-      marginBottom: "1rem",
-      display: "flex",
-      alignItems: "center",
-      fontSize: "0.9rem",
-    },
-    errorIcon: {
-      width: "20px",
-      height: "20px",
-      marginRight: "0.5rem",
-    },
-    successMessage: {
-      backgroundColor: "#dcfce7",
-      color: "#166534",
-      padding: "0.75rem 1rem",
-      borderRadius: "8px",
-      marginBottom: "1rem",
-      display: "flex",
-      alignItems: "center",
-      fontSize: "0.9rem",
-    },
-    successIcon: {
-      width: "20px",
-      height: "20px",
-      marginRight: "0.5rem",
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      marginTop: "1rem",
-    },
-    primaryButton: {
-      backgroundColor: "#3b82f6",
-      color: "white",
-      border: "none",
-      padding: "0.75rem 1.5rem",
-      borderRadius: "8px",
-      fontSize: "1rem",
-      fontWeight: "600",
-      cursor: "pointer",
-      transition: "background-color 0.3s ease",
-      flex: 1,
-    },
-    primaryButtonLoading: {
-      backgroundColor: "#3b82f6",
-      color: "white",
-      border: "none",
-      padding: "0.75rem 1.5rem",
-      borderRadius: "8px",
-      fontSize: "1rem",
-      fontWeight: "600",
-      cursor: "not-allowed",
-      opacity: 0.8,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "0.5rem",
-      flex: 1,
-    },
-    secondaryButton: {
-      backgroundColor: "white",
-      color: "#3b82f6",
-      border: "1px solid #3b82f6",
-      padding: "0.75rem 1.5rem",
-      borderRadius: "8px",
-      fontSize: "1rem",
-      fontWeight: "600",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-      flex: 1,
-    },
-    spinner: {
-      width: "20px",
-      height: "20px",
-      animation: "spin 1s linear infinite",
-    },
-    documentsContainer: {
-      backgroundColor: "white",
-      borderRadius: "10px",
-      padding: "2rem",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
-    },
-    documentsHeader: {
-      marginBottom: "1.5rem",
-    },
-    documentsTitle: {
-      fontSize: "1.25rem",
-      fontWeight: "600",
-      color: "#2c3e50",
-    },
-    loadingContainer: {
-      display: "flex",
-      flexDirection: "column" as const,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "2rem",
-      color: "#7f8c8d",
-    },
-    emptyState: {
-      display: "flex",
-      flexDirection: "column" as const,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "2rem",
-      color: "#7f8c8d",
-      textAlign: "center" as const,
-    },
-    emptyIcon: {
-      width: "48px",
-      height: "48px",
-      marginBottom: "1rem",
-      color: "#bdc3c7",
-    },
-    tableContainer: {
-      overflowX: "auto" as const,
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse" as const,
-    },
-    tableHeader: {
-      backgroundColor: "#f8f9fa",
-    },
-    tableHeaderCell: {
-      padding: "1rem",
-      textAlign: "left" as const,
-      fontWeight: "600",
-      color: "#2c3e50",
-      fontSize: "0.9rem",
-      borderBottom: "1px solid #dfe6e9",
-    },
-    tableRow: {
-      borderBottom: "1px solid #dfe6e9",
-      transition: "background-color 0.3s ease",
-    },
-    tableCell: {
-      padding: "1rem",
-      fontSize: "0.9rem",
-      color: "#34495e",
-    },
-    statusBadge: {
-      display: "inline-block",
-      padding: "0.25rem 0.75rem",
-      borderRadius: "9999px",
-      fontSize: "0.75rem",
-      fontWeight: "600",
-    },
-    activeBadge: {
-      backgroundColor: "#dcfce7",
-      color: "#166534",
-    },
-    inactiveBadge: {
-      backgroundColor: "#fef9c3",
-      color: "#854d0e",
-    },
-    archivedBadge: {
-      backgroundColor: "#fee2e2",
-      color: "#991b1b",
-    },
-    actionButton: {
-      padding: "0.5rem 1rem",
-      borderRadius: "6px",
-      fontSize: "0.8rem",
-      fontWeight: "600",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-      marginRight: "0.5rem",
-    },
-    editButton: {
-      backgroundColor: "#fef9c3",
-      color: "#854d0e",
-      border: "none",
-    },
-    deleteButton: {
-      backgroundColor: "#fee2e2",
-      color: "#991b1b",
-      border: "none",
-    },
-    documentLink: {
-      color: "#3b82f6",
-      textDecoration: "none",
-      fontWeight: "500",
-      transition: "color 0.3s ease",
-    },
-  };
+
+// Estilos en objeto TypeScript
+const styles = {
+  container: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "2rem",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    borderRadius: "12px",
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.18)",
+  },
+  header: {
+    marginBottom: "2rem",
+    textAlign: "center" as const,
+  },
+  title: {
+    fontSize: "2rem",
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: "0.5rem",
+  },
+  welcome: {
+    fontSize: "1rem",
+    color: "#7f8c8d",
+  },
+  userName: {
+    fontWeight: "bold",
+    color: "#3498db",
+  },
+  filterContainer: {
+    marginBottom: "2rem",
+  },
+  filterInput: {
+    width: "100%",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    border: "1px solid #dfe6e9",
+    fontSize: "1rem",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: "10px",
+    padding: "2rem",
+    marginBottom: "2rem",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
+  },
+  cardTitle: {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    marginBottom: "1.5rem",
+    color: "#2c3e50",
+  },
+  formGroup: {
+    marginBottom: "1.5rem",
+  },
+  label: {
+    display: "block",
+    marginBottom: "0.5rem",
+    fontWeight: "600",
+    color: "#34495e",
+    fontSize: "0.9rem",
+  },
+  fileUpload: {
+    position: "relative" as const,
+    marginBottom: "1rem",
+  },
+  fileInput: {
+    position: "absolute" as const,
+    width: "1px",
+    height: "1px",
+    padding: "0",
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    border: "0",
+  },
+  fileUploadLabel: {
+    display: "block",
+    padding: "0.75rem 1rem",
+    backgroundColor: "#f8f9fa",
+    border: "1px dashed #bdc3c7",
+    borderRadius: "8px",
+    textAlign: "center" as const,
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+  },
+  input: {
+    width: "100%",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    border: "1px solid #dfe6e9",
+    fontSize: "1rem",
+    transition: "border 0.3s ease",
+  },
+  select: {
+    width: "100%",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    border: "1px solid #dfe6e9",
+    fontSize: "1rem",
+    backgroundColor: "white",
+    cursor: "pointer",
+  },
+  errorMessage: {
+    backgroundColor: "#fee2e2",
+    color: "#dc2626",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    marginBottom: "1rem",
+    display: "flex",
+    alignItems: "center",
+    fontSize: "0.9rem",
+  },
+  errorIcon: {
+    width: "20px",
+    height: "20px",
+    marginRight: "0.5rem",
+  },
+  successMessage: {
+    backgroundColor: "#dcfce7",
+    color: "#166534",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    marginBottom: "1rem",
+    display: "flex",
+    alignItems: "center",
+    fontSize: "0.9rem",
+  },
+  successIcon: {
+    width: "20px",
+    height: "20px",
+    marginRight: "0.5rem",
+  },
+  buttonGroup: {
+    display: "flex",
+    gap: "1rem",
+    marginTop: "1rem",
+  },
+  primaryButton: {
+    backgroundColor: "#3b82f6",
+    color: "white",
+    border: "none",
+    padding: "0.75rem 1.5rem",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
+    flex: 1,
+  },
+  primaryButtonLoading: {
+    backgroundColor: "#3b82f6",
+    color: "white",
+    border: "none",
+    padding: "0.75rem 1.5rem",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    fontWeight: "600",
+    cursor: "not-allowed",
+    opacity: 0.8,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0.5rem",
+    flex: 1,
+  },
+  secondaryButton: {
+    backgroundColor: "white",
+    color: "#3b82f6",
+    border: "1px solid #3b82f6",
+    padding: "0.75rem 1.5rem",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    flex: 1,
+  },
+  spinner: {
+    width: "20px",
+    height: "20px",
+    animation: "spin 1s linear infinite",
+  },
+  documentsContainer: {
+    backgroundColor: "white",
+    borderRadius: "10px",
+    padding: "2rem",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
+  },
+  documentsHeader: {
+    marginBottom: "1.5rem",
+  },
+  documentsTitle: {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    color: "#2c3e50",
+  },
+  loadingContainer: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2rem",
+    color: "#7f8c8d",
+  },
+  emptyState: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2rem",
+    color: "#7f8c8d",
+    textAlign: "center" as const,
+  },
+  emptyIcon: {
+    width: "48px",
+    height: "48px",
+    marginBottom: "1rem",
+    color: "#bdc3c7",
+  },
+  tableContainer: {
+    overflowX: "auto" as const,
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse" as const,
+  },
+  tableHeader: {
+    backgroundColor: "#f8f9fa",
+  },
+  tableHeaderCell: {
+    padding: "1rem",
+    textAlign: "left" as const,
+    fontWeight: "600",
+    color: "#2c3e50",
+    fontSize: "0.9rem",
+    borderBottom: "1px solid #dfe6e9",
+  },
+  tableRow: {
+    borderBottom: "1px solid #dfe6e9",
+    transition: "background-color 0.3s ease",
+  },
+  tableCell: {
+    padding: "1rem",
+    fontSize: "0.9rem",
+    color: "#34495e",
+  },
+  statusBadge: {
+    display: "inline-block",
+    padding: "0.25rem 0.75rem",
+    borderRadius: "9999px",
+    fontSize: "0.75rem",
+    fontWeight: "600",
+  },
+  activeBadge: {
+    backgroundColor: "#dcfce7",
+    color: "#166534",
+  },
+  inactiveBadge: {
+    backgroundColor: "#fef9c3",
+    color: "#854d0e",
+  },
+  archivedBadge: {
+    backgroundColor: "#fee2e2",
+    color: "#991b1b",
+  },
+  actionButton: {
+    padding: "0.5rem 1rem",
+    borderRadius: "6px",
+    fontSize: "0.8rem",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    marginRight: "0.5rem",
+  },
+  editButton: {
+    backgroundColor: "#fef9c3",
+    color: "#854d0e",
+    border: "none",
+  },
+  deleteButton: {
+    backgroundColor: "#fee2e2",
+    color: "#991b1b",
+    border: "none",
+  },
+  documentLink: {
+    color: "#3b82f6",
+    textDecoration: "none",
+    fontWeight: "500",
+    transition: "color 0.3s ease",
+  },
+};

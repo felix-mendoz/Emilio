@@ -4,11 +4,11 @@ import fs from "fs";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const id_usuario = req.body.id_usuario;
+    const id_usuario = req.params.id;
     if (!id_usuario) return cb(new Error("ID de usuario requerido"), "");
 
-    const safeUserId = path.basename(id_usuario); // Evita inyecciones de ruta
-    const dir = path.join(__dirname, "..", "uploads", safeUserId);
+    const safeUserId = path.basename(id_usuario);
+    const dir = path.join(__dirname, "../..", "uploads", safeUserId);
 
     try {
       fs.mkdirSync(dir, { recursive: true });
@@ -32,4 +32,4 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   cb(null, true);
 };
 
-export const upload = multer({ storage, fileFilter }); // Puedes omitir fileFilter si no lo necesitas
+export const upload = multer({storage});
