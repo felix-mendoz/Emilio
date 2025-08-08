@@ -105,7 +105,9 @@ export const updateTarea = async (req: Request, res: Response) => {
       "descripcion",
       "id_materia",
       "estado",
-      "fecha_entrega"
+      "fecha_entrega",
+      "tiempo_dedicado",
+      "fecha_ultima_session"
     ];
 
     const datosActualizados: Partial<Tarea> = {};

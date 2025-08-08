@@ -7,6 +7,8 @@ export interface Tarea {
   id_materia?: number;
   estado?: boolean;
   fecha_entrega?: Date;
+  tiempo_dedicado?: number;
+  fecha_ultima_session?: Date;
 }
 
 export class TareaModel {
