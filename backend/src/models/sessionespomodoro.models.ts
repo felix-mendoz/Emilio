@@ -14,8 +14,13 @@ export class sessionPomodoroModel {
     return result.rows;
   }
 
-  static async getById(id_session: number): Promise<SessionPomodoro | null> {
-    const result = await pool.query('SELECT * FROM sessiones_pomodoro WHERE id_session = $1', [id_session]);
+  static async getAllByIdMateria(id_materia: number): Promise<SessionPomodoro[]> {
+    const result = await pool.query('SELECT * FROM sessiones_pomodoro WHERE id_tarea IN (SELECT id_tarea FROM tareas WHERE id_materia = $1)',[id_materia]);
+    return result.rows;
+  }
+
+  static async getByIdTarea(id_tarea: number): Promise<SessionPomodoro | null> {
+    const result = await pool.query('SELECT * FROM sessiones_pomodoro WHERE id_tarea = $1', [id_tarea]);
     return result.rows[0] || null;
   }
 
