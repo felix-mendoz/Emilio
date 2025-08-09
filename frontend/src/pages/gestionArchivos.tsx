@@ -17,17 +17,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
-  const [nuevoDocumento, setNuevoDocumento] = useState<{
-    nombre_archivo: string;
-    extension: string;
-    estado: EstadoDocumento;
-    materia_id?: string;
-  }>({
-    nombre_archivo: "",
-    extension: "",
-    estado: "activo",
-    materia_id: "",
-  });
+ const [nuevoDocumento, setNuevoDocumento] = useState<{
+  nombre_archivo: string;
+  extension: string;
+  estado: EstadoDocumento; // Solo números
+  materia_id?: string;
+}>({
+  nombre_archivo: "",
+  extension: "",
+  estado: 1, // 1 = activo por defecto (número)
+  materia_id: "",
+});
   const [file, setFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +105,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("guarda_archivo", file);
       formData.append("nombre_archivo", nuevoDocumento.nombre_archivo);
       formData.append("extension", nuevoDocumento.extension);
-      formData.append("estado", nuevoDocumento.estado);
+      formData.append("estado", nuevoDocumento.estado.toString());
       formData.append("id_usuario", userId);
       if (nuevoDocumento.materia_id) {
         formData.append("materia_id", nuevoDocumento.materia_id);
@@ -122,31 +122,34 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingId) return;
+const handleUpdate = async () => {
+  if (!editingId) return;
 
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
+  setIsLoading(true);
+  setError(null);
+  setSuccessMessage(null);
 
-    try {
-      await documentsAPI.update(editingId.toString(), {
-        nombre_archivo: nuevoDocumento.nombre_archivo,
-        estado: nuevoDocumento.estado,
-        materia_id: nuevoDocumento.materia_id || null,
-      });
+  try {
+    // Preparar el payload con el estado como número
+    const payload = {
+      nombre_archivo: nuevoDocumento.nombre_archivo,
+      estado: nuevoDocumento.estado, // Ya es un número (0, 1, 2)
+      materia_id: nuevoDocumento.materia_id || null,
+    };
 
-      setSuccessMessage("Documento actualizado correctamente");
-      setShouldReload(true);
-      resetForm();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al actualizar documento"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    await documentsAPI.update(editingId.toString(), payload);
+
+    setSuccessMessage("Documento actualizado correctamente");
+    setShouldReload(true);
+    resetForm();
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Error al actualizar documento"
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("¿Estás seguro de eliminar este documento?")) return;
@@ -168,22 +171,22 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     }
   };
 
-  const startEditing = (doc: Documento) => {
-    setEditingId(doc.id_archivo);
-    setNuevoDocumento({
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      estado: doc.estado,
-      materia_id: doc.materia_id || "",
-    });
-    setFile(null);
-  };
+const startEditing = (doc: Documento) => {
+  setEditingId(doc.id_archivo);
+  setNuevoDocumento({
+    nombre_archivo: doc.nombre_archivo,
+    extension: doc.extension,
+    estado: doc.estado, // Esto ya es un número
+    materia_id: doc.materia_id || "",
+  });
+  setFile(null);
+};
 
   const resetForm = () => {
     setNuevoDocumento({
       nombre_archivo: "",
       extension: "",
-      estado: "activo",
+      estado: 1, // Reset a activo
       materia_id: "",
     });
     setFile(null);
@@ -264,20 +267,18 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         <div style={styles.formGroup}>
           <label style={styles.label}>Estado:</label>
           <select
-            value={nuevoDocumento.estado}
-            onChange={(e) =>
-              setNuevoDocumento({
-                ...nuevoDocumento,
-                estado: e.target.value as EstadoDocumento,
-              })
-            }
-            style={styles.select}
-            disabled={isLoading}
-          >
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-            <option value="archivado">Archivado</option>
-          </select>
+  value={nuevoDocumento.estado}
+  onChange={(e) => setNuevoDocumento({
+    ...nuevoDocumento,
+    estado: Number(e.target.value) as EstadoDocumento
+  })}
+  style={styles.select}
+  disabled={isLoading}
+>
+  <option value={1}>Activo</option>
+  <option value={0}>Inactivo</option>
+  <option value={2}>Archivado</option>
+</select>
         </div>
 
         {error && (
@@ -418,17 +419,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                     <td style={styles.tableCell}>{doc.tamaño}</td>
                     <td style={styles.tableCell}>
                       <span
-                        style={{
-                          ...styles.statusBadge,
-                          ...(doc.estado === "activo"
-                            ? styles.activeBadge
-                            : doc.estado === "inactivo"
-                            ? styles.inactiveBadge
-                            : styles.archivedBadge),
-                        }}
-                      >
-                        {doc.estado}
-                      </span>
+  style={{
+    ...styles.statusBadge,
+    ...(doc.estado === 1
+      ? styles.activeBadge
+      : doc.estado === 0
+      ? styles.inactiveBadge
+      : styles.archivedBadge),
+  }}
+>
+  {doc.estado === 1 ? 'activo' : doc.estado === 0 ? 'inactivo' : 'archivado'}
+</span>
                     </td>
                     <td style={styles.tableCell}>
                       {new Date(doc.fecha_subida).toLocaleDateString()}

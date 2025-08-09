@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 /**
  * Tipos de datos unificados
  */
-export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
+export type EstadoDocumento = 0 | 1 | 2; // 0: inactivo, 1: activo, 2: archivado
 
 export interface Documento {
   id_archivo: number;
@@ -190,28 +190,23 @@ export const documentsAPI = {
         headers: getAuthHeaders(),
       });
 
-      console.log("Response status:", response.status);
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Error en getByUser:", errorData);
         throw new Error(errorData.message || `Error ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Datos recibidos en getByUser:", data);
 
       if (!Array.isArray(data)) {
-        console.error("La respuesta no es un array:", data);
         throw new Error("Formato de datos inválido: se esperaba un array");
       }
 
       return data.map(doc => ({
-        id_archivo: doc.id || doc.id_archivo || "",
+        id_archivo: doc.id || doc.id_archivo || 0,
         nombre_archivo: doc.nombre_archivo || "",
         extension: doc.extension || "",
         tamaño: doc.tamaño || doc.size || "0 KB",
-        estado: doc.estado || "activo",
+        estado: convertEstadoToNumber(doc.estado),
         fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
         url: doc.url || doc.download_url || "",
         usuario_id: doc.usuario_id || doc.user_id || "",
@@ -229,11 +224,11 @@ export const documentsAPI = {
     });
     const doc = await handleResponse<Record<string, any>>(response);
     return {
-      id_archivo: doc.id || doc.id_archivo || "",
+      id_archivo: doc.id || doc.id_archivo || 0,
       nombre_archivo: doc.nombre_archivo || "",
       extension: doc.extension || "",
       tamaño: doc.tamaño || doc.size || "0 KB",
-      estado: doc.estado || "activo",
+      estado: convertEstadoToNumber(doc.estado),
       fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
       url: doc.url || doc.download_url || "",
       usuario_id: doc.usuario_id || doc.user_id || "",
@@ -243,31 +238,25 @@ export const documentsAPI = {
 
   upload: async (formData: FormData, userId: string): Promise<Documento> => {
     try {
-      console.log("Enviando archivo a:", `${API_BASE_URL}/archivo/${userId}`);
-      
       const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
         method: "POST",
         headers: getAuthHeadersFormData(),
         body: formData,
       });
 
-      console.log("Respuesta del servidor:", response);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Error en upload:", errorData);
         throw new Error(errorData.message || `Error ${response.status}`);
       }
 
       const doc = await response.json();
-      console.log("Documento subido:", doc);
 
       return {
-        id_archivo: doc.id || doc.id_archivo || "",
+        id_archivo: doc.id || doc.id_archivo || 0,
         nombre_archivo: doc.nombre_archivo || "",
         extension: doc.extension || "",
         tamaño: doc.tamaño || doc.size || "0 KB",
-        estado: doc.estado || "activo",
+        estado: convertEstadoToNumber(doc.estado),
         fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
         url: doc.url || doc.download_url || "",
         usuario_id: doc.usuario_id || doc.user_id || "",
@@ -279,25 +268,21 @@ export const documentsAPI = {
     }
   },
 
-  update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo || "",
-      nombre_archivo: doc.nombre_archivo || "",
-      extension: doc.extension || "",
-      tamaño: doc.tamaño || doc.size || "0 KB",
-      estado: doc.estado || "activo",
-      fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
-      url: doc.url || doc.download_url || "",
-      usuario_id: doc.usuario_id || doc.user_id || "",
-      materia_id: doc.materia_id || doc.subject_id || null
-    };
-  },
+ update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
+  // Forzar el estado a número si viene como string (para retrocompatibilidad)
+  if (typeof updates.estado === 'string') {
+    updates.estado = updates.estado === 'activo' ? 1 : 
+                    updates.estado === 'inactivo' ? 0 : 2;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(updates),
+  });
+  const doc = await handleResponse<Documento>(response);
+  return doc;
+},
 
   delete: async (fileId: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
@@ -320,6 +305,19 @@ export const documentsAPI = {
     return response.blob();
   },
 };
+
+// Función para convertir el estado a número
+function convertEstadoToNumber(estado: any): EstadoDocumento {
+  if (typeof estado === 'number') {
+    return estado === 0 ? 0 : estado === 1 ? 1 : 2;
+  }
+
+  if (typeof estado === 'string') {
+    return estado === 'inactivo' ? 0 : estado === 'activo' ? 1 : 2;
+  }
+
+  return 1; // Valor por defecto (activo)
+}
 
 /**
  * API para gestión académica (Materias y Grupos)
