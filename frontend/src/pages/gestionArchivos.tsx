@@ -29,7 +29,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     materia_id: "",
   });
   const [file, setFile] = useState<File | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -127,7 +127,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setSuccessMessage(null);
 
     try {
-      const updatedDocument = await documentsAPI.update(editingId, {
+      const updatedDocument = await documentsAPI.update(editingId.toString(), {
         nombre_archivo: nuevoDocumento.nombre_archivo,
         estado: nuevoDocumento.estado,
         materia_id: nuevoDocumento.materia_id || null,
@@ -149,7 +149,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm("¿Estás seguro de eliminar este documento?")) return;
 
     setIsLoading(true);
@@ -157,7 +157,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setSuccessMessage(null);
 
     try {
-      await documentsAPI.delete(id);
+      await documentsAPI.delete(id.toString());
       setDocumentos(documentos.filter((doc) => doc.id_archivo !== id));
       setSuccessMessage("Documento eliminado correctamente");
     } catch (err) {
