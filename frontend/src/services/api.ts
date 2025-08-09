@@ -268,30 +268,21 @@ export const documentsAPI = {
     }
   },
 
-  update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
-    // Convertir el estado a número si está presente en las actualizaciones
-    if (updates.estado !== undefined) {
-      updates.estado = convertEstadoToNumber(updates.estado);
-    }
+ update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
+  // Forzar el estado a número si viene como string (para retrocompatibilidad)
+  if (typeof updates.estado === 'string') {
+    updates.estado = updates.estado === 'activo' ? 1 : 
+                    updates.estado === 'inactivo' ? 0 : 2;
+  }
 
-    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo || 0,
-      nombre_archivo: doc.nombre_archivo || "",
-      extension: doc.extension || "",
-      tamaño: doc.tamaño || doc.size || "0 KB",
-      estado: convertEstadoToNumber(doc.estado),
-      fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
-      url: doc.url || doc.download_url || "",
-      usuario_id: doc.usuario_id || doc.user_id || "",
-      materia_id: doc.materia_id || doc.subject_id || null
-    };
-  },
+  const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(updates),
+  });
+  const doc = await handleResponse<Documento>(response);
+  return doc;
+},
 
   delete: async (fileId: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {

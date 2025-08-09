@@ -17,17 +17,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
-  const [nuevoDocumento, setNuevoDocumento] = useState<{
-    nombre_archivo: string;
-    extension: string;
-    estado: EstadoDocumento;
-    materia_id?: string;
-  }>({
-    nombre_archivo: "",
-    extension: "",
-    estado: 1, // 1 = activo por defecto
-    materia_id: "",
-  });
+ const [nuevoDocumento, setNuevoDocumento] = useState<{
+  nombre_archivo: string;
+  extension: string;
+  estado: EstadoDocumento; // Solo números
+  materia_id?: string;
+}>({
+  nombre_archivo: "",
+  extension: "",
+  estado: 1, // 1 = activo por defecto (número)
+  materia_id: "",
+});
   const [file, setFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -121,6 +121,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(false);
     }
   };
+
 const handleUpdate = async () => {
   if (!editingId) return;
 
@@ -267,12 +268,10 @@ const startEditing = (doc: Documento) => {
           <label style={styles.label}>Estado:</label>
           <select
   value={nuevoDocumento.estado}
-  onChange={(e) =>
-    setNuevoDocumento({
-      ...nuevoDocumento,
-      estado: Number(e.target.value) as EstadoDocumento,
-    })
-  }
+  onChange={(e) => setNuevoDocumento({
+    ...nuevoDocumento,
+    estado: Number(e.target.value) as EstadoDocumento
+  })}
   style={styles.select}
   disabled={isLoading}
 >
