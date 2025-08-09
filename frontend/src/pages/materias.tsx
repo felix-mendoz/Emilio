@@ -109,7 +109,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
-
+    console.log(id);
     try {
       await academicAPI.deleteMateria(id);
       setMaterias(materias.filter(m => m.id !== id));
@@ -135,8 +135,9 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setNuevaMateria({
       nombre: '',
       codigo: '',
-      profesor_id: null,
-      grupo_id: null
+
+      profesor_id: '',
+      grupo_id: '',
     });
     setEditingId(null);
   };
