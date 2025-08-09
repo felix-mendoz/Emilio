@@ -121,32 +121,34 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(false);
     }
   };
+const handleUpdate = async () => {
+  if (!editingId) return;
 
-  const handleUpdate = async () => {
-    if (!editingId) return;
+  setIsLoading(true);
+  setError(null);
+  setSuccessMessage(null);
 
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
+  try {
+    // Preparar el payload con el estado como número
+    const payload = {
+      nombre_archivo: nuevoDocumento.nombre_archivo,
+      estado: nuevoDocumento.estado, // Ya es un número (0, 1, 2)
+      materia_id: nuevoDocumento.materia_id || null,
+    };
 
-    try {
-      await documentsAPI.update(editingId.toString(), {
-        nombre_archivo: nuevoDocumento.nombre_archivo,
-        estado: nuevoDocumento.estado,
-        materia_id: nuevoDocumento.materia_id || null,
-      });
+    await documentsAPI.update(editingId.toString(), payload);
 
-      setSuccessMessage("Documento actualizado correctamente");
-      setShouldReload(true);
-      resetForm();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al actualizar documento"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setSuccessMessage("Documento actualizado correctamente");
+    setShouldReload(true);
+    resetForm();
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Error al actualizar documento"
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("¿Estás seguro de eliminar este documento?")) return;
@@ -168,16 +170,16 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     }
   };
 
-  const startEditing = (doc: Documento) => {
-    setEditingId(doc.id_archivo);
-    setNuevoDocumento({
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      estado: doc.estado,
-      materia_id: doc.materia_id || "",
-    });
-    setFile(null);
-  };
+const startEditing = (doc: Documento) => {
+  setEditingId(doc.id_archivo);
+  setNuevoDocumento({
+    nombre_archivo: doc.nombre_archivo,
+    extension: doc.extension,
+    estado: doc.estado, // Esto ya es un número
+    materia_id: doc.materia_id || "",
+  });
+  setFile(null);
+};
 
   const resetForm = () => {
     setNuevoDocumento({
@@ -264,20 +266,20 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         <div style={styles.formGroup}>
           <label style={styles.label}>Estado:</label>
           <select
-            value={nuevoDocumento.estado}
-            onChange={(e) =>
-              setNuevoDocumento({
-                ...nuevoDocumento,
-                estado: Number(e.target.value) as EstadoDocumento,
-              })
-            }
-            style={styles.select}
-            disabled={isLoading}
-          >
-            <option value={1}>Activo</option>
-            <option value={0}>Inactivo</option>
-            <option value={2}>Archivado</option>
-          </select>
+  value={nuevoDocumento.estado}
+  onChange={(e) =>
+    setNuevoDocumento({
+      ...nuevoDocumento,
+      estado: Number(e.target.value) as EstadoDocumento,
+    })
+  }
+  style={styles.select}
+  disabled={isLoading}
+>
+  <option value={1}>Activo</option>
+  <option value={0}>Inactivo</option>
+  <option value={2}>Archivado</option>
+</select>
         </div>
 
         {error && (
@@ -418,17 +420,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                     <td style={styles.tableCell}>{doc.tamaño}</td>
                     <td style={styles.tableCell}>
                       <span
-                        style={{
-                          ...styles.statusBadge,
-                          ...(doc.estado === 1
-                            ? styles.activeBadge
-                            : doc.estado === 0
-                            ? styles.inactiveBadge
-                            : styles.archivedBadge),
-                        }}
-                      >
-                        {doc.estado === 1 ? 'activo' : doc.estado === 0 ? 'inactivo' : 'archivado'}
-                      </span>
+  style={{
+    ...styles.statusBadge,
+    ...(doc.estado === 1
+      ? styles.activeBadge
+      : doc.estado === 0
+      ? styles.inactiveBadge
+      : styles.archivedBadge),
+  }}
+>
+  {doc.estado === 1 ? 'activo' : doc.estado === 0 ? 'inactivo' : 'archivado'}
+</span>
                     </td>
                     <td style={styles.tableCell}>
                       {new Date(doc.fecha_subida).toLocaleDateString()}
