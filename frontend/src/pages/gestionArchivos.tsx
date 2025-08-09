@@ -4,6 +4,7 @@ import {
   type Documento,
   type EstadoDocumento,
 } from "../services/api";
+import { academicAPI, type Materia } from "../services/api";
 
 interface GestionArchivosProps {
   userName: string;
@@ -15,15 +16,18 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   userId,
 }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [materias, setMaterias] = useState<Materia[]>([]);
   const [filter, setFilter] = useState("");
   const [nuevoDocumento, setNuevoDocumento] = useState<{
     nombre_archivo: string;
     extension: string;
     estado: EstadoDocumento;
+    materia_id?: string;
   }>({
     nombre_archivo: "",
     extension: "",
     estado: "activo",
+    materia_id: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,22 +36,25 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadDocuments = async () => {
+    const loadData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-       const data = await documentsAPI.getByUser(userId);
-        setDocumentos(data);
+        const [docs, mats] = await Promise.all([
+          documentsAPI.getByUser(userId),
+          academicAPI.getMaterias()
+        ]);
+        setDocumentos(docs);
+        setMaterias(mats);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Error al cargar documentos"
+          err instanceof Error ? err.message : "Error al cargar datos"
         );
-        console.error("Error loading documents:", err);
       } finally {
         setIsLoading(false);
       }
     };
-    loadDocuments();
+    loadData();
   }, [userId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,10 +64,27 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 
       const fileNameParts = selectedFile.name.split(".");
       setNuevoDocumento({
+        ...nuevoDocumento,
         nombre_archivo: fileNameParts.slice(0, -1).join("."),
         extension: fileNameParts.pop()?.toUpperCase() || "",
-        estado: "activo",
       });
+    }
+  };
+
+  const handleDownload = async (doc: Documento) => {
+    try {
+      const response = await fetch(doc.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.nombre_archivo}.${doc.extension.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Error al descargar el archivo");
     }
   };
 
@@ -81,6 +105,9 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("extension", nuevoDocumento.extension);
       formData.append("estado", nuevoDocumento.estado);
       formData.append("id_usuario", userId);
+      if (nuevoDocumento.materia_id) {
+        formData.append("materia_id", nuevoDocumento.materia_id);
+      }
 
       const createdDocument = await documentsAPI.upload(formData, userId);
       setDocumentos([...documentos, createdDocument]);
@@ -88,7 +115,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir documento");
-      console.error("Upload error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +131,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       const updatedDocument = await documentsAPI.update(editingId, {
         nombre_archivo: nuevoDocumento.nombre_archivo,
         estado: nuevoDocumento.estado,
+        materia_id: nuevoDocumento.materia_id || null,
       });
 
       setDocumentos(
@@ -118,7 +145,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setError(
         err instanceof Error ? err.message : "Error al actualizar documento"
       );
-      console.error("Update error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +165,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setError(
         err instanceof Error ? err.message : "Error al eliminar documento"
       );
-      console.error("Delete error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -151,6 +176,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       nombre_archivo: doc.nombre_archivo,
       extension: doc.extension,
       estado: doc.estado,
+      materia_id: doc.materia_id || "",
     });
     setFile(null);
   };
@@ -160,6 +186,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       nombre_archivo: "",
       extension: "",
       estado: "activo",
+      materia_id: "",
     });
     setFile(null);
     setEditingId(null);
@@ -168,7 +195,8 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   const filteredDocuments = documentos.filter(
     (doc) =>
       doc.nombre_archivo?.toLowerCase().includes(filter.toLowerCase()) ||
-      doc.extension?.toLowerCase().includes(filter.toLowerCase())
+      doc.extension?.toLowerCase().includes(filter.toLowerCase()) ||
+      (doc.materia_id && materias.find(m => m.id === doc.materia_id)?.nombre.toLowerCase().includes(filter.toLowerCase()))
   );
 
   return (
@@ -221,6 +249,28 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         </div>
 
         <div style={styles.formGroup}>
+          <label style={styles.label}>Materia:</label>
+          <select
+            value={nuevoDocumento.materia_id || ""}
+            onChange={(e) =>
+              setNuevoDocumento({
+                ...nuevoDocumento,
+                materia_id: e.target.value || undefined,
+              })
+            }
+            style={styles.select}
+            disabled={isLoading}
+          >
+            <option value="">Sin materia</option>
+            {materias.map((materia) => (
+              <option key={materia.id} value={materia.id}>
+                {materia.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={styles.formGroup}>
           <label style={styles.label}>Estado:</label>
           <select
             value={nuevoDocumento.estado}
@@ -231,7 +281,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
               })
             }
             style={styles.select}
-            disabled={isLoading || !editingId}
+            disabled={isLoading}
           >
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
@@ -316,7 +366,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       <div style={styles.filterContainer}>
         <input
           type="text"
-          placeholder="🔍 Filtrar por nombre o extensión..."
+          placeholder="🔍 Filtrar por nombre, extensión o materia..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           style={styles.filterInput}
@@ -362,6 +412,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                 <tr>
                   <th style={styles.tableHeaderCell}>Nombre</th>
                   <th style={styles.tableHeaderCell}>Extensión</th>
+                  <th style={styles.tableHeaderCell}>Materia</th>
                   <th style={styles.tableHeaderCell}>Tamaño</th>
                   <th style={styles.tableHeaderCell}>Estado</th>
                   <th style={styles.tableHeaderCell}>Fecha</th>
@@ -382,6 +433,11 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                       </a>
                     </td>
                     <td style={styles.tableCell}>{doc.extension}</td>
+                    <td style={styles.tableCell}>
+                      {doc.materia_id ? 
+                        materias.find(m => m.id === doc.materia_id)?.nombre || "-" 
+                        : "-"}
+                    </td>
                     <td style={styles.tableCell}>{doc.tamaño}</td>
                     <td style={styles.tableCell}>
                       <span
@@ -401,6 +457,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                       {new Date(doc.fecha_subida).toLocaleDateString()}
                     </td>
                     <td style={styles.tableCell}>
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        style={{ 
+                          ...styles.actionButton, 
+                          backgroundColor: "#e0f2fe",
+                          color: "#0369a1",
+                          marginRight: "0.5rem"
+                        }}
+                      >
+                        Descargar
+                      </button>
                       <button
                         onClick={() => startEditing(doc)}
                         style={{ ...styles.actionButton, ...styles.editButton }}
@@ -430,9 +497,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   );
 };
 
-export default GestionArchivos;
-
-// Estilos en objeto TypeScript
+// Estilos completos
 const styles = {
   container: {
     maxWidth: "1200px",
@@ -708,7 +773,6 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s ease",
-    marginRight: "0.5rem",
   },
   editButton: {
     backgroundColor: "#fef9c3",
@@ -727,3 +791,5 @@ const styles = {
     transition: "color 0.3s ease",
   },
 };
+
+export default GestionArchivos;

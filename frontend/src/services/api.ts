@@ -1,5 +1,4 @@
 // services/api.ts
-
 const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
@@ -16,6 +15,7 @@ export interface Documento {
   fecha_subida: string;
   url: string;
   usuario_id: string;
+  materia_id?: string | null; // Añadimos null como opción
 }
 
 export interface Tarea {
@@ -25,7 +25,7 @@ export interface Tarea {
   fecha_entrega: string;
   estado: boolean;
   usuario_id: string;
-  ruta_id?: string;
+  materia_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +35,6 @@ export interface User {
   nombre: string;
   email: string;
 }
-
 
 export interface AuthResponse {
   token: string;
@@ -91,6 +90,16 @@ export interface GrupoWithRelations extends Grupo {
   materias?: Materia[];
 }
 
+export interface Session {
+  id: string;
+  usuario_id: string;
+  tarea_id?: string;
+  materia_id?: string;
+  duracion: number;
+  fecha: string;
+  completada: boolean;
+}
+
 // Helper functions
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -104,6 +113,13 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken') || localStorage.getItem('token');
   return {
     'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+};
+
+const getAuthHeadersFormData = () => {
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  return {
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   };
 };
@@ -146,7 +162,6 @@ export const authAPI = {
  * API para gestión de documentos
  */
 export const documentsAPI = {
-  // Obtener todos los archivos de un usuario específico
   getByUser: async (userId: string): Promise<Documento[]> => {
     const response = await fetch(`${API_BASE_URL}/archivo/usuario/${userId}`, {
       headers: getAuthHeaders(),
@@ -160,11 +175,11 @@ export const documentsAPI = {
       estado: doc.estado,
       fecha_subida: doc.fecha_subida || doc.upload_date,
       url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
+      usuario_id: doc.usuario_id || doc.user_id,
+      materia_id: doc.materia_id || doc.subject_id
     }));
   },
 
-  // Obtener un archivo específico por ID
   getById: async (fileId: string): Promise<Documento> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       headers: getAuthHeaders(),
@@ -178,17 +193,15 @@ export const documentsAPI = {
       estado: doc.estado,
       fecha_subida: doc.fecha_subida || doc.upload_date,
       url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
+      usuario_id: doc.usuario_id || doc.user_id,
+      materia_id: doc.materia_id || doc.subject_id
     };
   },
 
-  // Subir archivo para un usuario específico
   upload: async (formData: FormData, userId: string): Promise<Documento> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
       method: "POST",
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
-      },
+      headers: getAuthHeadersFormData(),
       body: formData,
     });
 
@@ -202,10 +215,10 @@ export const documentsAPI = {
       fecha_subida: doc.fecha_subida || doc.upload_date,
       url: doc.url || doc.download_url,
       usuario_id: doc.usuario_id || doc.user_id,
+      materia_id: doc.materia_id || doc.subject_id
     };
   },
 
-  // Actualizar un archivo específico
   update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       method: 'PUT',
@@ -221,11 +234,11 @@ export const documentsAPI = {
       estado: doc.estado,
       fecha_subida: doc.fecha_subida || doc.upload_date,
       url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
+      usuario_id: doc.usuario_id || doc.user_id,
+      materia_id: doc.materia_id || doc.subject_id
     };
   },
 
-  // Eliminar un archivo específico
   delete: async (fileId: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
       method: 'DELETE',
@@ -235,7 +248,6 @@ export const documentsAPI = {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
   },
-
 
   download: async (id: string): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${id}/download`, {
@@ -252,7 +264,6 @@ export const documentsAPI = {
  * API para gestión académica (Materias y Grupos)
  */
 export const academicAPI = {
-  // Materias
   getMaterias: async (): Promise<MateriaWithRelations[]> => {
     const response = await fetch(`${API_BASE_URL}/materias`, {
       headers: getAuthHeaders(),
@@ -298,7 +309,6 @@ export const academicAPI = {
     }
   },
 
-  // Grupos
   getGrupos: async (): Promise<GrupoWithRelations[]> => {
     const response = await fetch(`${API_BASE_URL}/grupos`, {
       headers: getAuthHeaders(),
@@ -344,26 +354,6 @@ export const academicAPI = {
     }
   },
 
-  addEstudiantesToGrupo: async (grupoId: string, estudiantesIds: string[]): Promise<GrupoWithRelations> => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ estudiantesIds }),
-    });
-    return handleResponse<GrupoWithRelations>(response);
-  },
-
-  removeEstudianteFromGrupo: async (grupoId: string, estudianteId: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes/${estudianteId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  },
-
-  // Usuarios
   getProfesores: async (): Promise<Usuario[]> => {
     const response = await fetch(`${API_BASE_URL}/usuarios?rol=profesor`, {
       headers: getAuthHeaders(),
@@ -383,6 +373,98 @@ export const academicAPI = {
       headers: getAuthHeaders(),
     });
     return handleResponse<Estudiante[]>(response);
+  },
+};
+
+/**
+ * API para gestión de tareas
+ */
+export const tasksAPI = {
+  getByUser: async (userId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario/${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  getById: async (id: string): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(taskData),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+};
+
+/**
+ * API para gestión de sesiones de pomodoro
+ */
+export const sessionAPI = {
+  create: async (sessionData: Omit<Session, 'id'>): Promise<Session> => {
+    const response = await fetch(`${API_BASE_URL}/session`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(sessionData),
+    });
+    return handleResponse<Session>(response);
+  },
+
+  getByUser: async (userId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  getByMateria: async (materiaId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/por-materia/${materiaId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  getByTarea: async (tareaId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/por-tarea/${tareaId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/session/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   },
 };
 
@@ -425,57 +507,4 @@ export const uploadFile = async (file: File, endpoint: string, additionalData: R
     body: formData,
   });
   return handleResponse(response);
-};
-
-
-/**
- * API para gestión de tareas
- */
-export const tasksAPI = {
-  // Obtener todas las tareas de un usuario
-  getByUser: async (userId: string): Promise<Tarea[]> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario?id_usuario=${userId}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea[]>(response);
-  },
-
-  // Obtener una tarea por ID
-  getById: async (id: string): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Crear nueva tarea
-  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(taskData),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Actualizar tarea
-  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Eliminar tarea
-  delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  },
 };
