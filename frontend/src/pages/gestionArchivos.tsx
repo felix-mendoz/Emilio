@@ -33,28 +33,31 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [shouldReload, setShouldReload] = useState(false);
+
+  const loadDocuments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [docs, mats] = await Promise.all([
+        documentsAPI.getByUser(userId),
+        academicAPI.getMaterias()
+      ]);
+      setDocumentos(docs);
+      setMaterias(mats);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al cargar datos"
+      );
+    } finally {
+      setIsLoading(false);
+      setShouldReload(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const [docs, mats] = await Promise.all([
-          documentsAPI.getByUser(userId),
-          academicAPI.getMaterias()
-        ]);
-        setDocumentos(docs);
-        setMaterias(mats);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Error al cargar datos"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, [userId]);
+    loadDocuments();
+  }, [userId, shouldReload]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -108,9 +111,9 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         formData.append("materia_id", nuevoDocumento.materia_id);
       }
 
-      const createdDocument = await documentsAPI.upload(formData, userId);
-      setDocumentos([...documentos, createdDocument]);
+      await documentsAPI.upload(formData, userId);
       setSuccessMessage("Documento subido correctamente");
+      setShouldReload(true);
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir documento");
@@ -127,18 +130,14 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setSuccessMessage(null);
 
     try {
-      const updatedDocument = await documentsAPI.update(editingId.toString(), {
+      await documentsAPI.update(editingId.toString(), {
         nombre_archivo: nuevoDocumento.nombre_archivo,
         estado: nuevoDocumento.estado,
         materia_id: nuevoDocumento.materia_id || null,
       });
 
-      setDocumentos(
-        documentos.map((doc) =>
-          doc.id_archivo === editingId ? updatedDocument : doc
-        )
-      );
       setSuccessMessage("Documento actualizado correctamente");
+      setShouldReload(true);
       resetForm();
     } catch (err) {
       setError(
@@ -158,8 +157,8 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 
     try {
       await documentsAPI.delete(id.toString());
-      setDocumentos(documentos.filter((doc) => doc.id_archivo !== id));
       setSuccessMessage("Documento eliminado correctamente");
+      setShouldReload(true);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al eliminar documento"
