@@ -17,7 +17,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
-  const [filter, setFilter] = useState("");
   const [nuevoDocumento, setNuevoDocumento] = useState<{
     nombre_archivo: string;
     extension: string;
@@ -40,30 +39,13 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        console.log("Iniciando carga de datos para usuario:", userId);
-        
-        const [docsResponse, matsResponse] = await Promise.all([
+        const [docs, mats] = await Promise.all([
           documentsAPI.getByUser(userId),
           academicAPI.getMaterias()
         ]);
-
-        console.log("Respuesta de documentos:", docsResponse);
-        console.log("Respuesta de materias:", matsResponse);
-
-        // Validación adicional de datos
-        if (!Array.isArray(docsResponse)) {
-          throw new Error("La respuesta de documentos no es un array");
-        }
-
-        if (!Array.isArray(matsResponse)) {
-          throw new Error("La respuesta de materias no es un array");
-        }
-
-        setDocumentos(docsResponse);
-        setMaterias(matsResponse);
-
+        setDocumentos(docs);
+        setMaterias(mats);
       } catch (err) {
-        console.error("Error al cargar datos:", err);
         setError(
           err instanceof Error ? err.message : "Error al cargar datos"
         );
@@ -71,12 +53,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         setIsLoading(false);
       }
     };
-    
-    if (userId) {
-      loadData();
-    } else {
-      console.warn("userId no está definido");
-    }
+    loadData();
   }, [userId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +83,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Error al descargar archivo:", err);
       setError("Error al descargar el archivo");
     }
   };
@@ -128,26 +104,15 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("extension", nuevoDocumento.extension);
       formData.append("estado", nuevoDocumento.estado);
       formData.append("id_usuario", userId);
-      
       if (nuevoDocumento.materia_id) {
         formData.append("materia_id", nuevoDocumento.materia_id);
       }
 
-      console.log("Enviando formulario con datos:", {
-        nombre_archivo: nuevoDocumento.nombre_archivo,
-        extension: nuevoDocumento.extension,
-        estado: nuevoDocumento.estado,
-        materia_id: nuevoDocumento.materia_id
-      });
-
       const createdDocument = await documentsAPI.upload(formData, userId);
-      console.log("Documento creado:", createdDocument);
-      
-      setDocumentos(prevDocs => [...prevDocs, createdDocument]);
+      setDocumentos([...documentos, createdDocument]);
       setSuccessMessage("Documento subido correctamente");
       resetForm();
     } catch (err) {
-      console.error("Error al subir documento:", err);
       setError(err instanceof Error ? err.message : "Error al subir documento");
     } finally {
       setIsLoading(false);
@@ -168,17 +133,14 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         materia_id: nuevoDocumento.materia_id || null,
       });
 
-      console.log("Documento actualizado:", updatedDocument);
-
-      setDocumentos(prevDocs =>
-        prevDocs.map((doc) =>
+      setDocumentos(
+        documentos.map((doc) =>
           doc.id_archivo === editingId ? updatedDocument : doc
         )
       );
       setSuccessMessage("Documento actualizado correctamente");
       resetForm();
     } catch (err) {
-      console.error("Error al actualizar documento:", err);
       setError(
         err instanceof Error ? err.message : "Error al actualizar documento"
       );
@@ -196,10 +158,9 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 
     try {
       await documentsAPI.delete(id);
-      setDocumentos(prevDocs => prevDocs.filter((doc) => doc.id_archivo !== id));
+      setDocumentos(documentos.filter((doc) => doc.id_archivo !== id));
       setSuccessMessage("Documento eliminado correctamente");
     } catch (err) {
-      console.error("Error al eliminar documento:", err);
       setError(
         err instanceof Error ? err.message : "Error al eliminar documento"
       );
@@ -229,18 +190,6 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setFile(null);
     setEditingId(null);
   };
-
-  const filteredDocuments = documentos.filter((doc) => {
-    const matchesFilter = 
-      doc.nombre_archivo?.toLowerCase().includes(filter.toLowerCase()) ||
-      doc.extension?.toLowerCase().includes(filter.toLowerCase()) ||
-      (doc.materia_id && 
-        materias.find(m => m.id === doc.materia_id)?.nombre.toLowerCase().includes(filter.toLowerCase()));
-    
-    return matchesFilter;
-  });
-
-  console.log("Documentos filtrados:", filteredDocuments);
 
   return (
     <div style={styles.container}>
@@ -406,20 +355,10 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         </div>
       </div>
 
-      <div style={styles.filterContainer}>
-        <input
-          type="text"
-          placeholder="🔍 Filtrar por nombre, extensión o materia..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          style={styles.filterInput}
-        />
-      </div>
-
       <div style={styles.documentsContainer}>
         <div style={styles.documentsHeader}>
           <h3 style={styles.documentsTitle}>
-            Documentos ({filteredDocuments.length})
+            Documentos ({documentos.length})
           </h3>
         </div>
 
@@ -437,26 +376,12 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
             </svg>
             <p>Cargando documentos...</p>
           </div>
-        ) : filteredDocuments.length === 0 ? (
+        ) : documentos.length === 0 ? (
           <div style={styles.emptyState}>
             <svg style={styles.emptyIcon} viewBox="0 0 24 24">
               <path fill="currentColor" d="M19,13H5V11H19V13Z" />
             </svg>
-            <p>
-              {filter
-                ? "No hay documentos que coincidan con tu búsqueda"
-                : documentos.length === 0
-                ? "No hay documentos disponibles"
-                : "Los documentos no coinciden con el filtro aplicado"}
-            </p>
-            {documentos.length > 0 && (
-              <button 
-                onClick={() => setFilter("")}
-                style={styles.secondaryButton}
-              >
-                Limpiar filtro
-              </button>
-            )}
+            <p>No hay documentos disponibles</p>
           </div>
         ) : (
           <div style={styles.tableContainer}>
@@ -473,7 +398,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {filteredDocuments.map((doc) => (
+                {documentos.map((doc) => (
                   <tr key={doc.id_archivo} style={styles.tableRow}>
                     <td style={styles.tableCell}>
                       <a
@@ -580,17 +505,6 @@ const styles = {
   userName: {
     fontWeight: "bold",
     color: "#3498db",
-  },
-  filterContainer: {
-    marginBottom: "2rem",
-  },
-  filterInput: {
-    width: "100%",
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    border: "1px solid #dfe6e9",
-    fontSize: "1rem",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
   },
   card: {
     backgroundColor: "white",
