@@ -184,7 +184,7 @@ export const documentsAPI = {
 
   // Subir archivo para un usuario específico
   upload: async (formData: FormData, userId: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/archivo/`, {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,

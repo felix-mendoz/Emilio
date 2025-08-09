@@ -41,7 +41,7 @@ app.get("/", (req, res) => {
   res.send("API funcionando correctamente ");
 });
 
-app.post("/api/register", async (req, res) => {
+app.post("/api/usuario/register", async (req, res) => {
   const { nombre, email, password } = req.body;
 
   if (!nombre || !email || !password) {
@@ -71,7 +71,7 @@ app.post("/api/register", async (req, res) => {
     });
   }
 });
-app.post("/api/login", async (req, res) => {
+app.post("/api/usuario/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -103,7 +103,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.get("/api/documents", async (req, res) => {
+app.get("/api/archivo/usuario/:id", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM archivo");
     res.json(result.rows);
@@ -112,7 +112,7 @@ app.get("/api/documents", async (req, res) => {
   }
 });
 
-app.delete("/api/documents/:id", async (req, res) => {
+app.delete("/api/archivo/:id", async (req, res) => {
   const { id } = req.params;
   console.log("ID recibido para eliminar:", id);
   try {
@@ -131,7 +131,7 @@ app.delete("/api/documents/:id", async (req, res) => {
   }
 });
 
-app.put("/api/documents/:id", async (req, res) => {
+app.put("/api/archivo/:id", async (req, res) => {
   const { id } = req.params;
   const { nombre_archivo, extension, estado } = req.body;
   try {
@@ -154,7 +154,7 @@ app.put("/api/documents/:id", async (req, res) => {
 
 // Guardar un documento
 app.post(
-  "/api/documents",
+  "/api/archivo",
   upload.single("guarda_archivo"),
   async (req, res) => {
     try {
@@ -163,27 +163,19 @@ app.post(
       const estado = true;
       const ultima_revision = new Date();
       const fecha_subida = new Date();
-      // const guarda_archivo = req.file.filename; // o usa newFileName si ya lo renombraste
-      // console.log("a",guarda_archivo);
-      console.log("Archivo recibido:", req.file);
-      console.log("Body recibido:", req.body);
 
       if (!req.file) {
         return res.status(400).json({ message: "Archivo no recibido" });
       }
 
-      // Crear carpeta para el usuario si no existe
       const userDir = path.join(__dirname, "uploads", id_usuario);
       fs.mkdirSync(userDir, { recursive: true });
 
-      // Definir nueva ruta del archivo
       const newFileName = `${Date.now()}-${req.file.originalname}`;
       const finalPath = path.join(userDir, newFileName);
 
-      // Mover el archivo desde carpeta temporal
       fs.renameSync(req.file.path, finalPath);
 
-      // Ruta relativa para guardar en la DB (opcional)
       const ruta_archivo = path.join("uploads", id_usuario, newFileName);
 
       await pool.query(
@@ -222,6 +214,59 @@ app.post(
   }
 );
 
+app.get("/api/materias", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM materias");
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error obteniendo datos: ", error });
+  }
+});
+app.post("/api/materias", async (req, res) => {
+  const { codigo, nombre,id_user,profesor_id,grupo_id } = req.body;
+  console.log(req.body);
+  if (!codigo || !nombre || !profesor_id || !grupo_id) {
+    return res
+      .status(400)
+      .json({ message: "Todos los campos son requeridos." });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO materias ( nombre,id_user,codigo,profesor_id,grupo_id) VALUES ($1, $2,$3,$4,$5)",
+      [ nombre,id_user,codigo, profesor_id, grupo_id]
+    );
+    
+
+    res.status(200).json({
+      message: "Materia Registrada Correctamente",
+    });
+  } catch (error) {
+    console.error("Error al registrar:", error);
+    res.status(500).json({
+      message: "Error al registrar la materia.",
+      error: error.message,
+    });
+  }
+});
+
+
+app.get("/api/grupos", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM grupo");
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error obteniendo datos: ", error });
+  }
+});
+app.get("/api/usuarios", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM usuario");
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error obteniendo datos: ", error });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

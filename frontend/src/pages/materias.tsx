@@ -15,7 +15,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     nombre: '',
     codigo: '',
     profesor_id: '',
-    grupo_id: ''
+    grupo_id: '',
+    id_user: userId
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +114,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
       nombre: materia.nombre,
       codigo: materia.codigo,
       profesor_id: materia.profesor_id || '',
-      grupo_id: materia.grupo_id || ''
+      grupo_id: materia.grupo_id || '',
+      id_user: userId
     });
   };
 
@@ -122,7 +124,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
       nombre: '',
       codigo: '',
       profesor_id: '',
-      grupo_id: ''
+      grupo_id: '',
+      id_user: userId
     });
     setEditingId(null);
   };
