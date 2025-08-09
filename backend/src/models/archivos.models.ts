@@ -57,7 +57,7 @@ export class ArchivoModel {
 
   static async delete(id_archivo: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM archivo WHERE id_archivo = $1', [id_archivo]);
-    return result.rows.length > 0;
+    return true;
   }
 
 }

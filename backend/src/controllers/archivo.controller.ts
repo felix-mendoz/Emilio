@@ -174,8 +174,9 @@ export const deleteArchivo = async (req: Request, res: Response) => {
 
     const eliminado = await ArchivoModel.delete(id_archivo);
 
+    
     if (!eliminado) {
-      res.status(404).json({ message: "Archivo no encontrado o ya eliminado" });
+      res.status(404).json({ message: "Archivo no encontrado o ya eliminado", estado: eliminado, id: id_archivo });
       return;
     }
 
