@@ -19,7 +19,7 @@ export class TareaModel {
   }
 
   static async getAll(id_usuario: number): Promise<Tarea[]> {
-    const result = await pool.query('SELECT * FROM tareas WHERE id_usuario = $1)',[id_usuario]);
+    const result = await pool.query('SELECT * FROM tareas WHERE id_usuario = $1',[id_usuario]);
     return result.rows;
   }
 
@@ -62,7 +62,7 @@ export class TareaModel {
 
   static async delete(id_tarea: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM tareas WHERE id_tarea = $1', [id_tarea]);
-    return result.rows.length > 0;
+    return true;
   }
 
 }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { tasksAPI, type Tarea } from "../services/api";
+import { academicAPI, type Materia } from "../services/api";
+import { sessionAPI, type Session } from "../services/api";
 
 interface GestionTareasProps {
   userName: string;
@@ -8,17 +10,21 @@ interface GestionTareasProps {
 
 const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
   const [tareas, setTareas] = useState<Tarea[]>([]);
+  const [materias, setMaterias] = useState<Materia[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [filter, setFilter] = useState("");
   const [nuevaTarea, setNuevaTarea] = useState<{
     titulo: string;
     descripcion: string;
     fecha_entrega: string;
     estado: boolean;
+    materia_id: string;
   }>({
     titulo: "",
     descripcion: "",
     fecha_entrega: "",
-    estado: false, // pendiente = false
+    estado: false,
+    materia_id: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,23 +37,40 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadTasks = async () => {
+  const loadData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // 🔧 Ajuste: backend devuelve boolean
-      const data = await tasksAPI.getByUser(userId);
-      setTareas(data);
+      const [tasksData, materiasData] = await Promise.all([
+        tasksAPI.getByUser(userId),
+        academicAPI.getMaterias()
+      ]);
+      setTareas(tasksData);
+      setMaterias(materiasData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar tareas");
+      setError(err instanceof Error ? err.message : "Error al cargar datos");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadTasks();
+    loadData();
   }, [userId]);
+
+  useEffect(() => {
+    if (selectedTarea) {
+      const loadSessions = async () => {
+        try {
+          const sessionsData = await sessionAPI.getByTarea(selectedTarea.id);
+          setSessions(sessionsData);
+        } catch (err) {
+          console.error("Error loading sessions:", err);
+        }
+      };
+      loadSessions();
+    }
+  }, [selectedTarea]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -66,22 +89,37 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
 
   const handlePomodoroFinish = async () => {
     if (!selectedTarea) return;
-    const updated = await tasksAPI.update(selectedTarea.id, {
-      estado: true, // completada
-    });
-    setTareas((prev) =>
-      prev.map((t) => (t.id === updated.id ? updated : t))
-    );
-    setSuccessMessage("Tarea completada. Tiempo registrado.");
-    setSelectedTarea(null);
-    setIsRunning(false);
-    setTimeLeft(25 * 60);
+    
+    try {
+      // Guardar la sesión del pomodoro
+      await sessionAPI.create({
+        usuario_id: userId,
+        tarea_id: selectedTarea.id,
+        materia_id: selectedTarea.materia_id,
+        duracion: 25, // 25 minutos
+        fecha: new Date().toISOString(),
+        completada: true,
+      });
+
+      setSuccessMessage("Sesión de pomodoro completada!");
+      setSelectedTarea(null);
+      setIsRunning(false);
+      setTimeLeft(25 * 60);
+    } catch (err) {
+      setError("Error al guardar la sesión de pomodoro");
+    }
   };
 
   const handleCreateOrUpdate = async () => {
+    if (!nuevaTarea.titulo || !nuevaTarea.materia_id) {
+      setError("Título y materia son requeridos");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
+
     try {
       const payload = {
         ...nuevaTarea,
@@ -109,12 +147,19 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("¿Estás seguro de eliminar esta tarea?")) return;
+    
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
     try {
       await tasksAPI.delete(id);
       setTareas((prev) => prev.filter((t) => t.id !== id));
       setSuccessMessage("Tarea eliminada correctamente");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al eliminar tarea");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -125,6 +170,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       descripcion: tarea.descripcion,
       fecha_entrega: tarea.fecha_entrega,
       estado: tarea.estado,
+      materia_id: tarea.materia_id,
     });
   };
 
@@ -134,12 +180,14 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       descripcion: "",
       fecha_entrega: "",
       estado: false,
+      materia_id: "",
     });
     setEditingId(null);
   };
 
   const filtered = tareas.filter((t) =>
-    t.titulo.toLowerCase().includes(filter.toLowerCase())
+    t.titulo.toLowerCase().includes(filter.toLowerCase()) ||
+    (t.materia_id && materias.find(m => m.id === t.materia_id)?.nombre.toLowerCase().includes(filter.toLowerCase()))
   );
 
   const formatTime = (seconds: number) => {
@@ -187,6 +235,25 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
             }
             placeholder="Describe la tarea"
           />
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Materia</label>
+          <select
+            style={styles.input}
+            value={nuevaTarea.materia_id}
+            onChange={(e) =>
+              setNuevaTarea({ ...nuevaTarea, materia_id: e.target.value })
+            }
+            required
+          >
+            <option value="">Seleccione una materia</option>
+            {materias.map((materia) => (
+              <option key={materia.id} value={materia.id}>
+                {materia.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={styles.formGroup}>
@@ -267,6 +334,9 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
             <p>
               Tarea seleccionada: <strong>{selectedTarea.titulo}</strong>
             </p>
+            <p>
+              Materia: <strong>{materias.find(m => m.id === selectedTarea.materia_id)?.nombre || "Sin materia"}</strong>
+            </p>
             <h2 style={{ textAlign: "center", fontSize: "3rem", margin: "1rem 0" }}>
               {formatTime(timeLeft)}
             </h2>
@@ -288,6 +358,19 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
                 Cancelar
               </button>
             </div>
+            
+            {sessions.length > 0 && (
+              <div style={{ marginTop: "1rem" }}>
+                <h4 style={{ marginBottom: "0.5rem" }}>Sesiones completadas:</h4>
+                <ul>
+                  {sessions.map((session) => (
+                    <li key={session.id}>
+                      {new Date(session.fecha).toLocaleString()} - {session.duracion} minutos
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </>
         ) : (
           <p>Selecciona una tarea para iniciar el pomodoro.</p>
@@ -298,7 +381,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
       <div style={styles.filterContainer}>
         <input
           type="text"
-          placeholder="🔍 Filtrar tareas..."
+          placeholder="🔍 Filtrar tareas por título o materia..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           style={styles.filterInput}
@@ -331,6 +414,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
               <thead style={styles.tableHeader}>
                 <tr>
                   <th style={styles.tableHeaderCell}>Título</th>
+                  <th style={styles.tableHeaderCell}>Materia</th>
                   <th style={styles.tableHeaderCell}>Descripción</th>
                   <th style={styles.tableHeaderCell}>Fecha</th>
                   <th style={styles.tableHeaderCell}>Estado</th>
@@ -341,6 +425,9 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
                 {filtered.map((t) => (
                   <tr key={t.id} style={styles.tableRow}>
                     <td style={styles.tableCell}>{t.titulo}</td>
+                    <td style={styles.tableCell}>
+                      {materias.find(m => m.id === t.materia_id)?.nombre || "Sin materia"}
+                    </td>
                     <td style={styles.tableCell}>{t.descripcion}</td>
                     <td style={styles.tableCell}>
                       {new Date(t.fecha_entrega).toLocaleDateString()}
@@ -394,6 +481,7 @@ const GestionTareas: React.FC<GestionTareasProps> = ({ userName, userId }) => {
   );
 };
 
+// Estilos completos
 const styles = {
   container: {
     maxWidth: "1200px",

@@ -4,6 +4,7 @@ import {
   type Documento,
   type EstadoDocumento,
 } from "../services/api";
+import { academicAPI, type Materia } from "../services/api";
 
 interface GestionArchivosProps {
   userName: string;
@@ -15,40 +16,48 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   userId,
 }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [filter, setFilter] = useState("");
-  const [nuevoDocumento, setNuevoDocumento] = useState<{
-    nombre_archivo: string;
-    extension: string;
-    estado: EstadoDocumento;
-  }>({
-    nombre_archivo: "",
-    extension: "",
-    estado: "activo",
-  });
+  const [materias, setMaterias] = useState<Materia[]>([]);
+ const [nuevoDocumento, setNuevoDocumento] = useState<{
+  nombre_archivo: string;
+  extension: string;
+  estado: EstadoDocumento; // Solo números
+  materia_id?: string;
+}>({
+  nombre_archivo: "",
+  extension: "",
+  estado: 1, // 1 = activo por defecto (número)
+  materia_id: "",
+});
   const [file, setFile] = useState<File | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [shouldReload, setShouldReload] = useState(false);
+
+  const loadDocuments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [docs] = await Promise.all([
+        documentsAPI.getByUser(userId),
+        // academicAPI.getMaterias()
+      ]);
+      setDocumentos(docs);
+      // setMaterias(mats);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al cargar datos"
+      );
+    } finally {
+      setIsLoading(false);
+      setShouldReload(false);
+    }
+  };
 
   useEffect(() => {
-    const loadDocuments = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-       const data = await documentsAPI.getByUser(userId);
-        setDocumentos(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Error al cargar documentos"
-        );
-        console.error("Error loading documents:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadDocuments();
-  }, [userId]);
+  }, [userId, shouldReload]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -57,10 +66,27 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 
       const fileNameParts = selectedFile.name.split(".");
       setNuevoDocumento({
+        ...nuevoDocumento,
         nombre_archivo: fileNameParts.slice(0, -1).join("."),
         extension: fileNameParts.pop()?.toUpperCase() || "",
-        estado: "activo",
       });
+    }
+  };
+
+  const handleDownload = async (doc: Documento) => {
+    try {
+      const response = await fetch(doc.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.nombre_archivo}.${doc.extension.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Error al descargar el archivo");
     }
   };
 
@@ -79,52 +105,53 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("guarda_archivo", file);
       formData.append("nombre_archivo", nuevoDocumento.nombre_archivo);
       formData.append("extension", nuevoDocumento.extension);
-      formData.append("estado", nuevoDocumento.estado);
+      formData.append("estado", nuevoDocumento.estado.toString());
       formData.append("id_usuario", userId);
+      if (nuevoDocumento.materia_id) {
+        formData.append("materia_id", nuevoDocumento.materia_id);
+      }
 
-      const createdDocument = await documentsAPI.upload(formData, userId);
-      setDocumentos([...documentos, createdDocument]);
+      await documentsAPI.upload(formData, userId);
       setSuccessMessage("Documento subido correctamente");
+      setShouldReload(true);
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir documento");
-      console.error("Upload error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingId) return;
+const handleUpdate = async () => {
+  if (!editingId) return;
 
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
+  setIsLoading(true);
+  setError(null);
+  setSuccessMessage(null);
 
-    try {
-      const updatedDocument = await documentsAPI.update(editingId, {
-        nombre_archivo: nuevoDocumento.nombre_archivo,
-        estado: nuevoDocumento.estado,
-      });
+  try {
+    // Preparar el payload con el estado como número
+    const payload = {
+      nombre_archivo: nuevoDocumento.nombre_archivo,
+      estado: nuevoDocumento.estado, // Ya es un número (0, 1, 2)
+      materia_id: nuevoDocumento.materia_id || null,
+    };
 
-      setDocumentos(
-        documentos.map((doc) =>
-          doc.id_archivo === editingId ? updatedDocument : doc
-        )
-      );
-      setSuccessMessage("Documento actualizado correctamente");
-      resetForm();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al actualizar documento"
-      );
-      console.error("Update error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    await documentsAPI.update(editingId.toString(), payload);
 
-  const handleDelete = async (id: string) => {
+    setSuccessMessage("Documento actualizado correctamente");
+    setShouldReload(true);
+    resetForm();
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Error al actualizar documento"
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  const handleDelete = async (id: number) => {
     if (!window.confirm("¿Estás seguro de eliminar este documento?")) return;
 
     setIsLoading(true);
@@ -132,44 +159,39 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setSuccessMessage(null);
 
     try {
-      await documentsAPI.delete(id);
-      setDocumentos(documentos.filter((doc) => doc.id_archivo !== id));
+      await documentsAPI.delete(id.toString());
       setSuccessMessage("Documento eliminado correctamente");
+      setShouldReload(true);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al eliminar documento"
       );
-      console.error("Delete error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const startEditing = (doc: Documento) => {
-    setEditingId(doc.id_archivo);
-    setNuevoDocumento({
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      estado: doc.estado,
-    });
-    setFile(null);
-  };
+const startEditing = (doc: Documento) => {
+  setEditingId(doc.id_archivo);
+  setNuevoDocumento({
+    nombre_archivo: doc.nombre_archivo,
+    extension: doc.extension,
+    estado: doc.estado, // Esto ya es un número
+    materia_id: doc.materia_id || "",
+  });
+  setFile(null);
+};
 
   const resetForm = () => {
     setNuevoDocumento({
       nombre_archivo: "",
       extension: "",
-      estado: "activo",
+      estado: 1, // Reset a activo
+      materia_id: "",
     });
     setFile(null);
     setEditingId(null);
   };
-
-  const filteredDocuments = documentos.filter(
-    (doc) =>
-      doc.nombre_archivo?.toLowerCase().includes(filter.toLowerCase()) ||
-      doc.extension?.toLowerCase().includes(filter.toLowerCase())
-  );
 
   return (
     <div style={styles.container}>
@@ -221,22 +243,42 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label}>Estado:</label>
+          <label style={styles.label}>Materia:</label>
           <select
-            value={nuevoDocumento.estado}
+            value={nuevoDocumento.materia_id || ""}
             onChange={(e) =>
               setNuevoDocumento({
                 ...nuevoDocumento,
-                estado: e.target.value as EstadoDocumento,
+                materia_id: e.target.value || undefined,
               })
             }
             style={styles.select}
-            disabled={isLoading || !editingId}
+            disabled={isLoading}
           >
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-            <option value="archivado">Archivado</option>
+            <option value="">Sin materia</option>
+            {materias.map((materia) => (
+              <option key={materia.id} value={materia.id}>
+                {materia.nombre}
+              </option>
+            ))}
           </select>
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Estado:</label>
+          <select
+  value={nuevoDocumento.estado}
+  onChange={(e) => setNuevoDocumento({
+    ...nuevoDocumento,
+    estado: Number(e.target.value) as EstadoDocumento
+  })}
+  style={styles.select}
+  disabled={isLoading}
+>
+  <option value={1}>Activo</option>
+  <option value={0}>Inactivo</option>
+  <option value={2}>Archivado</option>
+</select>
         </div>
 
         {error && (
@@ -313,20 +355,10 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         </div>
       </div>
 
-      <div style={styles.filterContainer}>
-        <input
-          type="text"
-          placeholder="🔍 Filtrar por nombre o extensión..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          style={styles.filterInput}
-        />
-      </div>
-
       <div style={styles.documentsContainer}>
         <div style={styles.documentsHeader}>
           <h3 style={styles.documentsTitle}>
-            Documentos ({filteredDocuments.length})
+            Documentos ({documentos.length})
           </h3>
         </div>
 
@@ -344,16 +376,12 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
             </svg>
             <p>Cargando documentos...</p>
           </div>
-        ) : filteredDocuments.length === 0 ? (
+        ) : documentos.length === 0 ? (
           <div style={styles.emptyState}>
             <svg style={styles.emptyIcon} viewBox="0 0 24 24">
               <path fill="currentColor" d="M19,13H5V11H19V13Z" />
             </svg>
-            <p>
-              {filter
-                ? "No hay documentos que coincidan con tu búsqueda"
-                : "No hay documentos disponibles"}
-            </p>
+            <p>No hay documentos disponibles</p>
           </div>
         ) : (
           <div style={styles.tableContainer}>
@@ -362,6 +390,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                 <tr>
                   <th style={styles.tableHeaderCell}>Nombre</th>
                   <th style={styles.tableHeaderCell}>Extensión</th>
+                  <th style={styles.tableHeaderCell}>Materia</th>
                   <th style={styles.tableHeaderCell}>Tamaño</th>
                   <th style={styles.tableHeaderCell}>Estado</th>
                   <th style={styles.tableHeaderCell}>Fecha</th>
@@ -369,7 +398,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {filteredDocuments.map((doc) => (
+                {documentos.map((doc) => (
                   <tr key={doc.id_archivo} style={styles.tableRow}>
                     <td style={styles.tableCell}>
                       <a
@@ -382,25 +411,41 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                       </a>
                     </td>
                     <td style={styles.tableCell}>{doc.extension}</td>
+                    <td style={styles.tableCell}>
+                      {doc.materia_id ? 
+                        materias.find(m => m.id === doc.materia_id)?.nombre || "-" 
+                        : "-"}
+                    </td>
                     <td style={styles.tableCell}>{doc.tamaño}</td>
                     <td style={styles.tableCell}>
                       <span
-                        style={{
-                          ...styles.statusBadge,
-                          ...(doc.estado === "activo"
-                            ? styles.activeBadge
-                            : doc.estado === "inactivo"
-                            ? styles.inactiveBadge
-                            : styles.archivedBadge),
-                        }}
-                      >
-                        {doc.estado}
-                      </span>
+  style={{
+    ...styles.statusBadge,
+    ...(doc.estado === 1
+      ? styles.activeBadge
+      : doc.estado === 0
+      ? styles.inactiveBadge
+      : styles.archivedBadge),
+  }}
+>
+  {doc.estado === 1 ? 'activo' : doc.estado === 0 ? 'inactivo' : 'archivado'}
+</span>
                     </td>
                     <td style={styles.tableCell}>
                       {new Date(doc.fecha_subida).toLocaleDateString()}
                     </td>
                     <td style={styles.tableCell}>
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        style={{ 
+                          ...styles.actionButton, 
+                          backgroundColor: "#e0f2fe",
+                          color: "#0369a1",
+                          marginRight: "0.5rem"
+                        }}
+                      >
+                        Descargar
+                      </button>
                       <button
                         onClick={() => startEditing(doc)}
                         style={{ ...styles.actionButton, ...styles.editButton }}
@@ -430,9 +475,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   );
 };
 
-export default GestionArchivos;
-
-// Estilos en objeto TypeScript
+// Estilos completos
 const styles = {
   container: {
     maxWidth: "1200px",
@@ -462,17 +505,6 @@ const styles = {
   userName: {
     fontWeight: "bold",
     color: "#3498db",
-  },
-  filterContainer: {
-    marginBottom: "2rem",
-  },
-  filterInput: {
-    width: "100%",
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    border: "1px solid #dfe6e9",
-    fontSize: "1rem",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
   },
   card: {
     backgroundColor: "white",
@@ -708,7 +740,6 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s ease",
-    marginRight: "0.5rem",
   },
   editButton: {
     backgroundColor: "#fef9c3",
@@ -727,3 +758,5 @@ const styles = {
     transition: "color 0.3s ease",
   },
 };
+
+export default GestionArchivos;

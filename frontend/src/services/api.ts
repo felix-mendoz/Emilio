@@ -1,14 +1,13 @@
 // services/api.ts
-
 const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
  * Tipos de datos unificados
  */
-export type EstadoDocumento = 'activo' | 'inactivo' | 'archivado';
+export type EstadoDocumento = 0 | 1 | 2; // 0: inactivo, 1: activo, 2: archivado
 
 export interface Documento {
-  id_archivo: string;
+  id_archivo: number;
   nombre_archivo: string;
   extension: string;
   tamaño: string;
@@ -16,6 +15,7 @@ export interface Documento {
   fecha_subida: string;
   url: string;
   usuario_id: string;
+  materia_id?: string | null;
 }
 
 export interface Tarea {
@@ -25,7 +25,7 @@ export interface Tarea {
   fecha_entrega: string;
   estado: boolean;
   usuario_id: string;
-  ruta_id?: string;
+  materia_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +35,6 @@ export interface User {
   nombre: string;
   email: string;
 }
-
 
 export interface AuthResponse {
   token: string;
@@ -50,7 +49,7 @@ export interface Materia {
   id: string;
   nombre: string;
   codigo: string;
-  profesor_id: string | null;
+  profesor_id: number | null; // Cambiado a number | null
   grupo_id: string | null;
   created_at: string;
   updated_at: string;
@@ -91,6 +90,16 @@ export interface GrupoWithRelations extends Grupo {
   materias?: Materia[];
 }
 
+export interface Session {
+  id: string;
+  usuario_id: string;
+  tarea_id?: string;
+  materia_id?: string;
+  duracion: number;
+  fecha: string;
+  completada: boolean;
+}
+
 // Helper functions
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -102,8 +111,18 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  if (!token) {
+    console.warn("No se encontró token de autenticación");
+  }
   return {
     'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+};
+
+const getAuthHeadersFormData = () => {
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  return {
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   };
 };
@@ -140,102 +159,141 @@ export const authAPI = {
     });
     return handleResponse<Usuario>(response);
   },
-};
 
-/**
- * API para gestión de documentos
- */
-export const documentsAPI = {
-  // Obtener todos los archivos de un usuario específico
-  getByUser: async (userId: string): Promise<Documento[]> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/usuario/${userId}`, {
-      headers: getAuthHeaders(),
-    });
-    const data = await handleResponse<Array<Record<string, any>>>(response);
-    return data.map(doc => ({
-      id_archivo: doc.id || doc.id_archivo,
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      tamaño: doc.tamaño || doc.size,
-      estado: doc.estado,
-      fecha_subida: doc.fecha_subida || doc.upload_date,
-      url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
-    }));
-  },
-
-  // Obtener un archivo específico por ID
-  getById: async (fileId: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
-      headers: getAuthHeaders(),
-    });
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo,
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      tamaño: doc.tamaño || doc.size,
-      estado: doc.estado,
-      fecha_subida: doc.fecha_subida || doc.upload_date,
-      url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
-    };
-  },
-
-  // Subir archivo para un usuario específico
-  upload: async (formData: FormData, userId: string): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
-      method: "POST",
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`,
-      },
-      body: formData,
-    });
-
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo,
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      tamaño: doc.tamaño || doc.size,
-      estado: doc.estado,
-      fecha_subida: doc.fecha_subida || doc.upload_date,
-      url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id,
-    };
-  },
-
-  // Actualizar un archivo específico
-  update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+  updateUser: async (userId: string, updates: Partial<Usuario>): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
     });
-    const doc = await handleResponse<Record<string, any>>(response);
-    return {
-      id_archivo: doc.id || doc.id_archivo,
-      nombre_archivo: doc.nombre_archivo,
-      extension: doc.extension,
-      tamaño: doc.tamaño || doc.size,
-      estado: doc.estado,
-      fecha_subida: doc.fecha_subida || doc.upload_date,
-      url: doc.url || doc.download_url,
-      usuario_id: doc.usuario_id || doc.user_id
-    };
+    return handleResponse<Usuario>(response);
   },
 
-  // Eliminar un archivo específico
-  delete: async (fileId: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+  deleteUser: async (userId: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+  }
+};
+
+/**
+ * API para gestión de documentos
+ */
+export const documentsAPI = {
+  getByUser: async (userId: string): Promise<Documento[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/archivo/usuario/${userId}`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Formato de datos inválido: se esperaba un array");
+      }
+
+      return data.map(doc => ({
+        id_archivo: doc.id || doc.id_archivo || 0,
+        nombre_archivo: doc.nombre_archivo || "",
+        extension: doc.extension || "",
+        tamaño: doc.tamaño || doc.size || "0 KB",
+        estado: convertEstadoToNumber(doc.estado),
+        fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
+        url: doc.url || doc.download_url || "",
+        usuario_id: doc.usuario_id || doc.user_id || "",
+        materia_id: doc.materia_id || doc.subject_id || null
+      }));
+    } catch (error) {
+      console.error("Error en documentsAPI.getByUser:", error);
+      throw error;
+    }
   },
 
+  getById: async (fileId: string): Promise<Documento> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+      headers: getAuthHeaders(),
+    });
+    const doc = await handleResponse<Record<string, any>>(response);
+    return {
+      id_archivo: doc.id || doc.id_archivo || 0,
+      nombre_archivo: doc.nombre_archivo || "",
+      extension: doc.extension || "",
+      tamaño: doc.tamaño || doc.size || "0 KB",
+      estado: convertEstadoToNumber(doc.estado),
+      fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
+      url: doc.url || doc.download_url || "",
+      usuario_id: doc.usuario_id || doc.user_id || "",
+      materia_id: doc.materia_id || doc.subject_id || null
+    };
+  },
+
+  upload: async (formData: FormData, userId: string): Promise<Documento> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/archivo/${userId}`, {
+        method: "POST",
+        headers: getAuthHeadersFormData(),
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${response.status}`);
+      }
+
+      const doc = await response.json();
+
+      return {
+        id_archivo: doc.id || doc.id_archivo || 0,
+        nombre_archivo: doc.nombre_archivo || "",
+        extension: doc.extension || "",
+        tamaño: doc.tamaño || doc.size || "0 KB",
+        estado: convertEstadoToNumber(doc.estado),
+        fecha_subida: doc.fecha_subida || doc.upload_date || new Date().toISOString(),
+        url: doc.url || doc.download_url || "",
+        usuario_id: doc.usuario_id || doc.user_id || "",
+        materia_id: doc.materia_id || doc.subject_id || null
+      };
+    } catch (error) {
+      console.error("Error en documentsAPI.upload:", error);
+      throw error;
+    }
+  },
+
+ update: async (fileId: string, updates: Partial<Documento>): Promise<Documento> => {
+  // Forzar el estado a número si viene como string (para retrocompatibilidad)
+  if (typeof updates.estado === 'string') {
+    updates.estado = updates.estado === 'activo' ? 1 : 
+                    updates.estado === 'inactivo' ? 0 : 2;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(updates),
+  });
+  const doc = await handleResponse<Documento>(response);
+  return doc;
+},
+
+  delete: async (fileId: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/archivo/${fileId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+  },
 
   download: async (id: string): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/archivo/${id}/download`, {
@@ -248,16 +306,53 @@ export const documentsAPI = {
   },
 };
 
+// Función para convertir el estado a número
+function convertEstadoToNumber(estado: any): EstadoDocumento {
+  if (typeof estado === 'number') {
+    return estado === 0 ? 0 : estado === 1 ? 1 : 2;
+  }
+
+  if (typeof estado === 'string') {
+    return estado === 'inactivo' ? 0 : estado === 'activo' ? 1 : 2;
+  }
+
+  return 1; // Valor por defecto (activo)
+}
+
 /**
  * API para gestión académica (Materias y Grupos)
  */
 export const academicAPI = {
-  // Materias
-  getMaterias: async (): Promise<MateriaWithRelations[]> => {
-    const response = await fetch(`${API_BASE_URL}/materias`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<MateriaWithRelations[]>(response);
+  getMaterias: async (): Promise<Materia[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        throw new Error("Formato de datos inválido: se esperaba un array");
+      }
+
+      return data.map(materia => ({
+        id: materia.id || "",
+        nombre: materia.nombre || "",
+        codigo: materia.codigo || "",
+        profesor_id: materia.profesor_id || null,
+        grupo_id: materia.grupo_id || null,
+        created_at: materia.created_at || new Date().toISOString(),
+        updated_at: materia.updated_at || new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error("Error en academicAPI.getMaterias:", error);
+      throw error;
+    }
   },
 
   getMateriaById: async (id: string): Promise<MateriaWithRelations> => {
@@ -298,7 +393,6 @@ export const academicAPI = {
     }
   },
 
-  // Grupos
   getGrupos: async (): Promise<GrupoWithRelations[]> => {
     const response = await fetch(`${API_BASE_URL}/grupos`, {
       headers: getAuthHeaders(),
@@ -344,26 +438,6 @@ export const academicAPI = {
     }
   },
 
-  addEstudiantesToGrupo: async (grupoId: string, estudiantesIds: string[]): Promise<GrupoWithRelations> => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ estudiantesIds }),
-    });
-    return handleResponse<GrupoWithRelations>(response);
-  },
-
-  removeEstudianteFromGrupo: async (grupoId: string, estudianteId: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes/${estudianteId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  },
-
-  // Usuarios
   getProfesores: async (): Promise<Usuario[]> => {
     const response = await fetch(`${API_BASE_URL}/usuarios?rol=profesor`, {
       headers: getAuthHeaders(),
@@ -384,6 +458,136 @@ export const academicAPI = {
     });
     return handleResponse<Estudiante[]>(response);
   },
+
+  addEstudianteToGrupo: async (estudianteId: string, grupoId: string): Promise<Estudiante> => {
+    const response = await fetch(`${API_BASE_URL}/grupos/${grupoId}/estudiantes/${estudianteId}`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Estudiante>(response);
+  },
+
+  removeEstudianteFromGrupo: async (estudianteId: string): Promise<Estudiante> => {
+    const response = await fetch(`${API_BASE_URL}/grupos/estudiantes/${estudianteId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Estudiante>(response);
+  }
+};
+
+/**
+ * API para gestión de tareas
+ */
+export const tasksAPI = {
+  getByUser: async (userId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario/${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  getById: async (id: string): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  getByMateria: async (materiaId: string): Promise<Tarea[]> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/por-materia/${materiaId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea[]>(response);
+  },
+
+  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(taskData),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    return handleResponse<Tarea>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+
+  completeTask: async (id: string): Promise<Tarea> => {
+    const response = await fetch(`${API_BASE_URL}/tarea/${id}/completar`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Tarea>(response);
+  }
+};
+
+/**
+ * API para gestión de sesiones de pomodoro
+ */
+export const sessionAPI = {
+  create: async (sessionData: Omit<Session, 'id'>): Promise<Session> => {
+    const response = await fetch(`${API_BASE_URL}/session`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(sessionData),
+    });
+    return handleResponse<Session>(response);
+  },
+
+  getByUser: async (userId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  getByMateria: async (materiaId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/por-materia/${materiaId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  getByTarea: async (tareaId: string): Promise<Session[]> => {
+    const response = await fetch(`${API_BASE_URL}/session/por-tarea/${tareaId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<Session[]>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/session/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+
+  getStatsByUser: async (userId: string): Promise<{totalSessions: number, totalTime: number}> => {
+    const response = await fetch(`${API_BASE_URL}/session/${userId}/stats`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<{totalSessions: number, totalTime: number}>(response);
+  }
 };
 
 /**
@@ -402,6 +606,7 @@ export const verifyToken = async (): Promise<boolean> => {
 
     return response.ok;
   } catch (error) {
+    console.error("Error en verifyToken:", error);
     return false;
   }
 };
@@ -427,55 +632,12 @@ export const uploadFile = async (file: File, endpoint: string, additionalData: R
   return handleResponse(response);
 };
 
-
 /**
- * API para gestión de tareas
+ * Helper para manejar errores de API
  */
-export const tasksAPI = {
-  // Obtener todas las tareas de un usuario
-  getByUser: async (userId: string): Promise<Tarea[]> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/por-usuario?id_usuario=${userId}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea[]>(response);
-  },
-
-  // Obtener una tarea por ID
-  getById: async (id: string): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Crear nueva tarea
-  create: async (taskData: Omit<Tarea, 'id' | 'created_at' | 'updated_at'>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(taskData),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Actualizar tarea
-  update: async (id: string, updates: Partial<Tarea>): Promise<Tarea> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    return handleResponse<Tarea>(response);
-  },
-
-  // Eliminar tarea
-  delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/tarea/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  },
+export const handleApiError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Ocurrió un error desconocido";
 };

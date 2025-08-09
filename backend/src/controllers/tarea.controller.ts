@@ -49,7 +49,7 @@ export const getTareasPorMateria = async (req: Request, res: Response) => {
 export const getTareasPorUsuario = async (req: Request, res: Response) => {
   try {
 
-    const id_usuario = parseInt(req.query.id_usuario as string);
+    const id_usuario = parseInt(req.params.id);
 
     if(isNaN(id_usuario) || id_usuario < 1){
       res.status(400).json({ message: "id_usuario no valido."});
@@ -58,7 +58,19 @@ export const getTareasPorUsuario = async (req: Request, res: Response) => {
 
     const Tareas = await TareaModel.getAll(id_usuario);
 
-    res.status(200).json(Tareas);
+    const TareasFormateadas = Tareas.map(tarea => ({
+      id: tarea.id_tarea.toString(),
+      titulo: tarea.titulo,
+      descripcion: tarea.descripcion,
+      fecha_entrega: tarea.fecha_entrega ? tarea.fecha_entrega.toISOString() : '',
+      estado: tarea.estado ?? false,
+      usuario_id: (tarea.id_usuario ?? 0).toString(),
+      materia_id: (tarea.id_materia ?? 0).toString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+
+    res.status(200).json(TareasFormateadas);
 
   }
   catch(error){

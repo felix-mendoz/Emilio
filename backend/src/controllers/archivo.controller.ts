@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {Archivo, ArchivoModel} from "../models/archivos.models";
+import path from "path";
 
 export const postArchivo = async (req: Request, res: Response) => {
   try {
@@ -16,6 +17,7 @@ export const postArchivo = async (req: Request, res: Response) => {
     const extension = nombre_archivo.split('.').pop()?.toUpperCase() || 'DESCONOCIDO';
     const tamaño = req.file.size;
     const fecha = new Date();
+    const rutaRelativa = path.join(id_usuario.toString(), req.file.filename);
 
     const RecibidoArchivo: Omit<Archivo, 'id_archivo'> = {
       id_usuario: id_usuario,
@@ -24,7 +26,7 @@ export const postArchivo = async (req: Request, res: Response) => {
       fecha_subida: fecha,
       estado:true,
       ultima_revision: null,
-      ruta_archivo: ruta_archivo,
+      ruta_archivo: rutaRelativa,
       tamaño : tamaño
     };
 
@@ -36,7 +38,7 @@ export const postArchivo = async (req: Request, res: Response) => {
       type: nuevoArchivo.extension,
       size: nuevoArchivo.tamaño,
       uploadDate: nuevoArchivo.fecha_subida,
-      url: `http://localhost:3000/${ruta_archivo}`
+      url: `http://localhost:3000/uploads/${ruta_archivo}`
     });
 
   } catch (error) {
@@ -59,11 +61,11 @@ export const getArchivos = async (req: Request, res: Response) => {
 
     const ArchivosFormateados = Archivos.map(Archivo => ({
       id_archivo: Archivo.id_archivo,
-      nombre_archico: Archivo.nombre_archivo,
+      nombre_archivo: Archivo.nombre_archivo,
       extension: Archivo.extension,
       tamaño: Archivo.tamaño,
       fecha_subida: Archivo.fecha_subida,
-      url: `http://localhost:3000/${Archivo.ruta_archivo}`
+      url: `http://localhost:3000/uploads/${Archivo.ruta_archivo}`
     }));
 
     res.status(200).json(ArchivosFormateados);
@@ -81,7 +83,7 @@ export const getArchivo = async (req: Request, res: Response) => {
     const id_archivo = parseInt(req.params.id);
 
     if(id_archivo == null || id_archivo < 1 || id_archivo == undefined){
-      res.status(500).json({ message: "id_usuario no valido."});
+      res.status(400).json({ message: "id archivo no valido."});
     }
 
     const Archivo = await ArchivoModel.getById(id_archivo);
@@ -93,11 +95,11 @@ export const getArchivo = async (req: Request, res: Response) => {
 
     const ArchivoFormateado = {
       id_archivo: Archivo.id_archivo,
-      nombre_archico: Archivo.nombre_archivo,
+      nombre_archivo: Archivo.nombre_archivo,
       extension: Archivo.extension,
       tamaño: Archivo.tamaño,
       fecha_subida: Archivo.fecha_subida,
-      url: `http://localhost:3000/${Archivo.ruta_archivo}`
+      url: `http://localhost:3000/uploads/${Archivo.ruta_archivo}`
     };
 
     res.status(200).json(ArchivoFormateado);
@@ -172,8 +174,9 @@ export const deleteArchivo = async (req: Request, res: Response) => {
 
     const eliminado = await ArchivoModel.delete(id_archivo);
 
+    
     if (!eliminado) {
-      res.status(404).json({ message: "Archivo no encontrado o ya eliminado" });
+      res.status(404).json({ message: "Archivo no encontrado o ya eliminado", estado: eliminado, id: id_archivo });
       return;
     }
 
