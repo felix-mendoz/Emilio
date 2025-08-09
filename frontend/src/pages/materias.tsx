@@ -15,7 +15,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     nombre: '',
     codigo: '',
     profesor_id: '',
-    grupo_id: ''
+    grupo_id: '',
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -95,7 +95,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
-
+    console.log(id);
     try {
       await academicAPI.deleteMateria(id);
       setMaterias(materias.filter(m => m.id !== id));
@@ -113,7 +113,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
       nombre: materia.nombre,
       codigo: materia.codigo,
       profesor_id: materia.profesor_id || '',
-      grupo_id: materia.grupo_id || ''
+      grupo_id: materia.grupo_id || '',
     });
   };
 
@@ -122,7 +122,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
       nombre: '',
       codigo: '',
       profesor_id: '',
-      grupo_id: ''
+      grupo_id: '',
     });
     setEditingId(null);
   };

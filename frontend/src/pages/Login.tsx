@@ -32,7 +32,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
             setIsAuthenticated(true);
             setUserData({ 
       name: user.nombre, 
-      id: user.id 
+      id: user.id_user 
     });
             navigate("/");
         } catch (err) {
