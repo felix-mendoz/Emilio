@@ -223,7 +223,7 @@ app.get("/api/materias", async (req, res) => {
   }
 });
 app.post("/api/materias", async (req, res) => {
-  const { codigo, nombre,id_user,profesor_id,grupo_id } = req.body;
+  const { codigo, nombre,profesor_id,grupo_id } = req.body;
   console.log(req.body);
   if (!codigo || !nombre || !profesor_id || !grupo_id) {
     return res
@@ -233,8 +233,8 @@ app.post("/api/materias", async (req, res) => {
 
   try {
     await pool.query(
-      "INSERT INTO materias ( nombre,id_user,codigo,profesor_id,grupo_id) VALUES ($1, $2,$3,$4,$5)",
-      [ nombre,id_user,codigo, profesor_id, grupo_id]
+      "INSERT INTO materias ( nombre,codigo,profesor_id,grupo_id) VALUES ($1, $2,$3,$4)",
+      [ nombre,codigo, profesor_id, grupo_id]
     );
     
 
@@ -249,6 +249,48 @@ app.post("/api/materias", async (req, res) => {
     });
   }
 });
+app.put("/api/materias/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nombre, codigo, profesor_id,grupo_id } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE materias 
+        SET nombre = $1, codigo = $2, profesor_id = $3, grupo_id = $4
+        WHERE id_materia = $5`,
+      [nombre, codigo, profesor_id,grupo_id, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "materia no encontrada." });
+    }
+
+    res.json({ message: "materia actualizada correctamente." });
+  } catch (error) {
+    res.status(500).json({ message: "Error actualizando materia: ", error });
+  }
+});
+
+app.delete("/api/materias/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+ 
+  try {
+    const result = await pool.query(
+      "DELETE FROM materias WHERE id_materia = $1",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Materia no encontrada." });
+    }
+
+    res.json({ success: true, message: "Materia eliminada correctamente." });
+  } catch (error) {
+    console.error("Error al eliminar materia:", error);
+    res.status(500).json({ success: false, message: "Error eliminando Materia." });
+  }
+});
+
 
 
 app.get("/api/grupos", async (req, res) => {

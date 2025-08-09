@@ -5,7 +5,7 @@ import { authAPI } from "../services/api";
 
 interface LoginProps {
     setIsAuthenticated: (value: boolean) => void;
-    setUserData: (data: { name: string; id_user: string }) => void;
+    setUserData: (data: { name: string; id: string }) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
@@ -32,7 +32,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserData }) => {
             setIsAuthenticated(true);
             setUserData({ 
       name: user.nombre, 
-      id_user: user.id_user 
+      id: user.id_user 
     });
             navigate("/");
         } catch (err) {
