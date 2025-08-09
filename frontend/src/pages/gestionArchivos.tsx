@@ -40,13 +40,30 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const [docs, mats] = await Promise.all([
+        console.log("Iniciando carga de datos para usuario:", userId);
+        
+        const [docsResponse, matsResponse] = await Promise.all([
           documentsAPI.getByUser(userId),
           academicAPI.getMaterias()
         ]);
-        setDocumentos(docs);
-        setMaterias(mats);
+
+        console.log("Respuesta de documentos:", docsResponse);
+        console.log("Respuesta de materias:", matsResponse);
+
+        // Validación adicional de datos
+        if (!Array.isArray(docsResponse)) {
+          throw new Error("La respuesta de documentos no es un array");
+        }
+
+        if (!Array.isArray(matsResponse)) {
+          throw new Error("La respuesta de materias no es un array");
+        }
+
+        setDocumentos(docsResponse);
+        setMaterias(matsResponse);
+
       } catch (err) {
+        console.error("Error al cargar datos:", err);
         setError(
           err instanceof Error ? err.message : "Error al cargar datos"
         );
@@ -54,7 +71,12 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         setIsLoading(false);
       }
     };
-    loadData();
+    
+    if (userId) {
+      loadData();
+    } else {
+      console.warn("userId no está definido");
+    }
   }, [userId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +106,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (err) {
+      console.error("Error al descargar archivo:", err);
       setError("Error al descargar el archivo");
     }
   };
@@ -105,15 +128,26 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("extension", nuevoDocumento.extension);
       formData.append("estado", nuevoDocumento.estado);
       formData.append("id_usuario", userId);
+      
       if (nuevoDocumento.materia_id) {
         formData.append("materia_id", nuevoDocumento.materia_id);
       }
 
+      console.log("Enviando formulario con datos:", {
+        nombre_archivo: nuevoDocumento.nombre_archivo,
+        extension: nuevoDocumento.extension,
+        estado: nuevoDocumento.estado,
+        materia_id: nuevoDocumento.materia_id
+      });
+
       const createdDocument = await documentsAPI.upload(formData, userId);
-      setDocumentos([...documentos, createdDocument]);
+      console.log("Documento creado:", createdDocument);
+      
+      setDocumentos(prevDocs => [...prevDocs, createdDocument]);
       setSuccessMessage("Documento subido correctamente");
       resetForm();
     } catch (err) {
+      console.error("Error al subir documento:", err);
       setError(err instanceof Error ? err.message : "Error al subir documento");
     } finally {
       setIsLoading(false);
@@ -134,14 +168,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
         materia_id: nuevoDocumento.materia_id || null,
       });
 
-      setDocumentos(
-        documentos.map((doc) =>
+      console.log("Documento actualizado:", updatedDocument);
+
+      setDocumentos(prevDocs =>
+        prevDocs.map((doc) =>
           doc.id_archivo === editingId ? updatedDocument : doc
         )
       );
       setSuccessMessage("Documento actualizado correctamente");
       resetForm();
     } catch (err) {
+      console.error("Error al actualizar documento:", err);
       setError(
         err instanceof Error ? err.message : "Error al actualizar documento"
       );
@@ -159,9 +196,10 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
 
     try {
       await documentsAPI.delete(id);
-      setDocumentos(documentos.filter((doc) => doc.id_archivo !== id));
+      setDocumentos(prevDocs => prevDocs.filter((doc) => doc.id_archivo !== id));
       setSuccessMessage("Documento eliminado correctamente");
     } catch (err) {
+      console.error("Error al eliminar documento:", err);
       setError(
         err instanceof Error ? err.message : "Error al eliminar documento"
       );
@@ -192,12 +230,17 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setEditingId(null);
   };
 
-  const filteredDocuments = documentos.filter(
-    (doc) =>
+  const filteredDocuments = documentos.filter((doc) => {
+    const matchesFilter = 
       doc.nombre_archivo?.toLowerCase().includes(filter.toLowerCase()) ||
       doc.extension?.toLowerCase().includes(filter.toLowerCase()) ||
-      (doc.materia_id && materias.find(m => m.id === doc.materia_id)?.nombre.toLowerCase().includes(filter.toLowerCase()))
-  );
+      (doc.materia_id && 
+        materias.find(m => m.id === doc.materia_id)?.nombre.toLowerCase().includes(filter.toLowerCase()));
+    
+    return matchesFilter;
+  });
+
+  console.log("Documentos filtrados:", filteredDocuments);
 
   return (
     <div style={styles.container}>
@@ -402,8 +445,18 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
             <p>
               {filter
                 ? "No hay documentos que coincidan con tu búsqueda"
-                : "No hay documentos disponibles"}
+                : documentos.length === 0
+                ? "No hay documentos disponibles"
+                : "Los documentos no coinciden con el filtro aplicado"}
             </p>
+            {documentos.length > 0 && (
+              <button 
+                onClick={() => setFilter("")}
+                style={styles.secondaryButton}
+              >
+                Limpiar filtro
+              </button>
+            )}
           </div>
         ) : (
           <div style={styles.tableContainer}>
