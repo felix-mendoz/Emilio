@@ -39,12 +39,12 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const [docs, mats] = await Promise.all([
+      const [docs] = await Promise.all([
         documentsAPI.getByUser(userId),
-        academicAPI.getMaterias()
+        // academicAPI.getMaterias()
       ]);
       setDocumentos(docs);
-      setMaterias(mats);
+      // setMaterias(mats);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al cargar datos"

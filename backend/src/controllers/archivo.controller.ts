@@ -61,7 +61,7 @@ export const getArchivos = async (req: Request, res: Response) => {
 
     const ArchivosFormateados = Archivos.map(Archivo => ({
       id_archivo: Archivo.id_archivo,
-      nombre_archico: Archivo.nombre_archivo,
+      nombre_archivo: Archivo.nombre_archivo,
       extension: Archivo.extension,
       tamaño: Archivo.tamaño,
       fecha_subida: Archivo.fecha_subida,
@@ -95,7 +95,7 @@ export const getArchivo = async (req: Request, res: Response) => {
 
     const ArchivoFormateado = {
       id_archivo: Archivo.id_archivo,
-      nombre_archico: Archivo.nombre_archivo,
+      nombre_archivo: Archivo.nombre_archivo,
       extension: Archivo.extension,
       tamaño: Archivo.tamaño,
       fecha_subida: Archivo.fecha_subida,
@@ -174,8 +174,9 @@ export const deleteArchivo = async (req: Request, res: Response) => {
 
     const eliminado = await ArchivoModel.delete(id_archivo);
 
+    
     if (!eliminado) {
-      res.status(404).json({ message: "Archivo no encontrado o ya eliminado" });
+      res.status(404).json({ message: "Archivo no encontrado o ya eliminado", estado: eliminado, id: id_archivo });
       return;
     }
 

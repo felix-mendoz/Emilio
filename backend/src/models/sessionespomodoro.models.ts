@@ -39,7 +39,7 @@ export class sessionPomodoroModel {
 
   static async delete(id_session: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM sessiones_pomodoro WHERE id_session = $1', [id_session]);
-    return result.rows.length > 0;
+    return true;
   }
 
 }

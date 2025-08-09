@@ -9,7 +9,7 @@ Tarearouter.post("/", postTarea);
 Tarearouter.get("/por-materia", getTareasPorMateria);
 
 // GET /tarea?id_usuario=23 → obtener todos por usuario
-Tarearouter.get("/por-usuario", getTareasPorUsuario);
+Tarearouter.get("/por-usuario/:id", getTareasPorUsuario);
 
 // GET /tarea/:id → obtener uno
 Tarearouter.get("/:id", getTarea);
