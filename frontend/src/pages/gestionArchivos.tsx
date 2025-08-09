@@ -25,7 +25,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
   }>({
     nombre_archivo: "",
     extension: "",
-    estado: "activo",
+    estado: 1, // 1 = activo por defecto
     materia_id: "",
   });
   const [file, setFile] = useState<File | null>(null);
@@ -105,7 +105,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
       formData.append("guarda_archivo", file);
       formData.append("nombre_archivo", nuevoDocumento.nombre_archivo);
       formData.append("extension", nuevoDocumento.extension);
-      formData.append("estado", nuevoDocumento.estado);
+      formData.append("estado", nuevoDocumento.estado.toString());
       formData.append("id_usuario", userId);
       if (nuevoDocumento.materia_id) {
         formData.append("materia_id", nuevoDocumento.materia_id);
@@ -183,7 +183,7 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
     setNuevoDocumento({
       nombre_archivo: "",
       extension: "",
-      estado: "activo",
+      estado: 1, // Reset a activo
       materia_id: "",
     });
     setFile(null);
@@ -268,15 +268,15 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
             onChange={(e) =>
               setNuevoDocumento({
                 ...nuevoDocumento,
-                estado: e.target.value as EstadoDocumento,
+                estado: Number(e.target.value) as EstadoDocumento,
               })
             }
             style={styles.select}
             disabled={isLoading}
           >
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-            <option value="archivado">Archivado</option>
+            <option value={1}>Activo</option>
+            <option value={0}>Inactivo</option>
+            <option value={2}>Archivado</option>
           </select>
         </div>
 
@@ -420,14 +420,14 @@ const GestionArchivos: React.FC<GestionArchivosProps> = ({
                       <span
                         style={{
                           ...styles.statusBadge,
-                          ...(doc.estado === "activo"
+                          ...(doc.estado === 1
                             ? styles.activeBadge
-                            : doc.estado === "inactivo"
+                            : doc.estado === 0
                             ? styles.inactiveBadge
                             : styles.archivedBadge),
                         }}
                       >
-                        {doc.estado}
+                        {doc.estado === 1 ? 'activo' : doc.estado === 0 ? 'inactivo' : 'archivado'}
                       </span>
                     </td>
                     <td style={styles.tableCell}>
