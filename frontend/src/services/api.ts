@@ -49,7 +49,7 @@ export interface Materia {
   id: string;
   nombre: string;
   codigo: string;
-  profesor_id: string | null;
+  profesor_id: number | null; // Cambiado a number | null
   grupo_id: string | null;
   created_at: string;
   updated_at: string;

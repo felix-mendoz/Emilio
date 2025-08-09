@@ -14,8 +14,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
   const [nuevaMateria, setNuevaMateria] = useState({
     nombre: '',
     codigo: '',
-    profesor_id: '',
-    grupo_id: ''
+    profesor_id: null as number | null,
+    grupo_id: null as string | null
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +57,14 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setSuccessMessage(null);
 
     try {
-      const createdMateria = await academicAPI.createMateria(nuevaMateria);
+      const payload = {
+        nombre: nuevaMateria.nombre,
+        codigo: nuevaMateria.codigo,
+        profesor_id: nuevaMateria.profesor_id,
+        grupo_id: nuevaMateria.grupo_id
+      };
+
+      const createdMateria = await academicAPI.createMateria(payload);
       setMaterias([...materias, createdMateria]);
       setSuccessMessage('Materia creada correctamente');
       resetForm();
@@ -76,7 +83,14 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setSuccessMessage(null);
 
     try {
-      const updatedMateria = await academicAPI.updateMateria(editingId, nuevaMateria);
+      const payload = {
+        nombre: nuevaMateria.nombre,
+        codigo: nuevaMateria.codigo,
+        profesor_id: nuevaMateria.profesor_id,
+        grupo_id: nuevaMateria.grupo_id
+      };
+
+      const updatedMateria = await academicAPI.updateMateria(editingId, payload);
       setMaterias(materias.map(m => 
         m.id === editingId ? updatedMateria : m
       ));
@@ -112,8 +126,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setNuevaMateria({
       nombre: materia.nombre,
       codigo: materia.codigo,
-      profesor_id: materia.profesor_id || '',
-      grupo_id: materia.grupo_id || ''
+      profesor_id: materia.profesor_id,
+      grupo_id: materia.grupo_id
     });
   };
 
@@ -121,8 +135,8 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
     setNuevaMateria({
       nombre: '',
       codigo: '',
-      profesor_id: '',
-      grupo_id: ''
+      profesor_id: null,
+      grupo_id: null
     });
     setEditingId(null);
   };
@@ -189,10 +203,10 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
           <div>
             <label className="block mb-2 font-medium">Profesor:</label>
             <select
-              value={nuevaMateria.profesor_id}
+              value={nuevaMateria.profesor_id || ''}
               onChange={(e) => setNuevaMateria({
                 ...nuevaMateria,
-                profesor_id: e.target.value
+                profesor_id: e.target.value ? parseInt(e.target.value) : null
               })}
               className="w-full p-2 border rounded"
               disabled={isLoading}
@@ -209,10 +223,10 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
           <div>
             <label className="block mb-2 font-medium">Grupo:</label>
             <select
-              value={nuevaMateria.grupo_id}
+              value={nuevaMateria.grupo_id || ''}
               onChange={(e) => setNuevaMateria({
                 ...nuevaMateria,
-                grupo_id: e.target.value
+                grupo_id: e.target.value || null
               })}
               className="w-full p-2 border rounded"
               disabled={isLoading}
@@ -295,7 +309,7 @@ const Materias: React.FC<MateriasProps> = ({ userRole, userId }) => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredMaterias.map((materia) => {
-                  const profesor = profesores.find(p => p.id === materia.profesor_id);
+                  const profesor = profesores.find(p => p.id === materia.profesor_id?.toString());
                   const grupo = grupos.find(g => g.id === materia.grupo_id);
                   
                   return (
