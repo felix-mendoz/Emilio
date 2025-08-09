@@ -7,6 +7,9 @@ export interface Tarea {
   id_materia?: number;
   estado?: boolean;
   fecha_entrega?: Date;
+  tiempo_dedicado?: number;
+  fecha_ultima_session?: Date;
+  id_usuario?: number;
 }
 
 export class TareaModel {
@@ -16,7 +19,7 @@ export class TareaModel {
   }
 
   static async getAll(id_usuario: number): Promise<Tarea[]> {
-    const result = await pool.query('SELECT * FROM tareas WHERE id_materia IN (SELECT id_materia FROM materias WHERE id_user = $1)',[id_usuario]);
+    const result = await pool.query('SELECT * FROM tareas WHERE id_usuario = $1)',[id_usuario]);
     return result.rows;
   }
 
@@ -26,13 +29,13 @@ export class TareaModel {
   }
 
   static async create(tarea: Omit<Tarea, 'id_tarea'>): Promise<Tarea> {
-    const {titulo, descripcion, id_materia, estado, fecha_entrega} = tarea;
+    const {titulo, descripcion, id_materia, estado, fecha_entrega, id_usuario} = tarea;
 
     const result = await pool.query(
-      `INSERT INTO tareas (titulo, descripcion, id_materia, estado, fecha_entrega)
-      VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO tareas (titulo, descripcion, id_materia, estado, fecha_entrega, id_usuario)
+      VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [titulo, descripcion, id_materia, estado, fecha_entrega]
+      [titulo, descripcion, id_materia, estado, fecha_entrega, id_usuario]
     );
 
     return result.rows[0];

@@ -4,13 +4,15 @@ import { Tarea, TareaModel } from "../models/tareas.models";
 export const postTarea = async (req: Request, res: Response) => {
   try {
 
-    const {titulo, descripcion, id_materia, estado} = req.body;
+    const {titulo, descripcion, id_materia, estado, fecha_entrega, id_usuario} = req.body;
 
     const Tarea: Omit<Tarea, 'id_tarea'> = {
       id_materia: id_materia,
       titulo: titulo,
       descripcion: descripcion,
-      estado: estado
+      estado: estado,
+      fecha_entrega : fecha_entrega,
+      id_usuario: id_usuario
     };
 
     const nuevaTarea = await TareaModel.create(Tarea);
@@ -104,7 +106,9 @@ export const updateTarea = async (req: Request, res: Response) => {
       "descripcion",
       "id_materia",
       "estado",
-      "fecha_entrega"
+      "fecha_entrega",
+      "tiempo_dedicado",
+      "fecha_ultima_session"
     ];
 
     const datosActualizados: Partial<Tarea> = {};
